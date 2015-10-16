@@ -5,7 +5,7 @@ INSTRUCTIONS FOR RUNNING - READ THIS SHIT FIRST OR IT WON'T WORK
 -----------------------------------------------------------------
 
 Compile in terminal the normal way (gcc -oa.out verifyInstruction.c -lm)
-Call the program with and instruction, with each argument separated by spaces (NOT commas)
+Call the program with an instruction, with each argument separated by spaces (NOT commas)
 $, (, ), and possibly other characters must be prepended with \
 so a typical add instruction would be
 
@@ -57,7 +57,7 @@ Useful for verifying whether a character (which is expected to be an integer) is
 
 int strncmp(char* str1, char* str2, int n)
 
-compares the first n bytes (characters) of str1 and str2. It looks char by char a mismatch, and returns the (integer) value of the mismatch. So, if the first n bytes match,
+compares the first n bytes (characters) of str1 and str2. It looks char by char for a mismatch, and returns the (integer) value of the mismatch. So, if the first n bytes match,
 
 strncmp(str1, str2, n) = 0
 
