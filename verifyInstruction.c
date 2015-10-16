@@ -85,7 +85,7 @@ Writes n to str1 (NOT concatenation, it's an overrwrite) as a string.
 
 void strcpy(char* str1, char* str2)
 
-copies str2 into str2. Careful about the mallocs
+copies str2 into str1. Careful about the mallocs
 
 -------------------------
 
