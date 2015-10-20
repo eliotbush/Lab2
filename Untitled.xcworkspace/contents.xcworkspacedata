@@ -10,4 +10,11 @@
    <FileRef
       location = "group:verifyInstruction.c">
    </FileRef>
+   <FileRef
+      location = "group:createInstructionMemory"
+      assignedFileDataType = "public.c-source">
+   </FileRef>
+   <FileRef
+      location = "group:assemblyProgram.txt">
+   </FileRef>
 </Workspace>
