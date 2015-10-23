@@ -49,7 +49,7 @@ int main(int argc, const char * argv[]) {
             i++;
         }
         //still working on verifyInstruction.
-        //assert(verifyInstruction(instructionMemory[j]));
+        assert(verifyInstruction(instructionMemory[j]));
 	j++;
     }
     for(i=0;i<j;i++){printf("%s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3]);}
@@ -331,7 +331,12 @@ char* translateRegister(char *Reg){
 
 //verify that an address is valid
 //returns bool for conditionals
-bool verifyAddress(char *addr){
+bool verifyAddress(char *Addr){
+    char *c;
+    c = "\n";
+    char *addr;
+    addr = strtok(Addr, c);
+
     //if the first char isn't a number quit out
     if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
     
