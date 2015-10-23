@@ -22,50 +22,38 @@ bool verifyImmediate(char *);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 int main(int argc, const char * argv[]) {
     char ***instructionMemory;
-    char line[100];
-    char delimeters[] = ", ";
-    int count;
-    int count0;
+    char *line;
+    char delimiters[] = ", ";
     int i;
     int j;
-    
-    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
-    instructionMemory = (char***)malloc(512*sizeof(char**)); //is this right?
+    int k;
+    instructionMemory = (char***) malloc(512*sizeof(char**));
     for(i=0; i<512; i++){
-        instructionMemory[i] = (char**) malloc(sizeof(char*));
-        for(j=0; j<4; j++){
-            instructionMemory[i][j] = (char*) malloc(10 * sizeof(char));
-        }
-    }
-    
-    count0 = 0;
-    while (fgets(line, 100, assembly_program) != NULL) {
-        //tokenize line and put in instructionMemory
-        count = 0;
-        char **p = (char **) malloc(100*sizeof(char *));
-        p[0] = strtok(line, delimeters);
-        while(p[count]!= NULL){
-            p[count+1] = strtok(NULL, delimeters);
-            count++;
-        }
-        printf("%s %s %s %s\n", p[0], p[1], p[3], p[4]);
-        //assert(verifyInstruction(p));
-        instructionMemory[count0] = p;
-        count0++;
-    }
-    
-    fclose(assembly_program);
-    
-    /*for(i=0;i<count0;i++){
-        printf("%s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3]);
-        
-    }*/
-    
-    return 0;
-}
+        instructionMemory[i] = (char**) malloc(10*sizeof(char*));
+    }    
 
+
+    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
+
+    j=0;
+    char *token;
+    while (fgets(line, 100, assembly_program) != NULL){
+	i=0;
+    	token = strtok(line, delimiters);
+        while(token != NULL){
+            instructionMemory[j][i]= strdup(token);
+            token = strtok(NULL, delimiters);
+            i++;
+        }
+        //still working on verifyInstruction.
+        //assert(verifyInstruction(instructionMemory[j]));
+	j++;
+    }
+    for(i=0;i<j;i++){printf("%s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3]);}
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,7 +140,11 @@ bool verifyInstruction(char **instr){
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //verify a NUMERICAL valued register.
-bool verifyRegister(char *reg){
+bool verifyRegister(char *Reg){
+    char *c;
+    c = "\n";
+    char *reg;
+    reg = strtok(Reg, c);
     if(reg[0]=='$'){
         //register $0-9
         //check if 0 <= reg[1] <= 9
@@ -205,7 +197,12 @@ bool verifyRegister(char *reg){
 //translates a symbolic register into a numerical one
 //for unrecognized symbols (either an illegal symbol or a numerical register) it returns the original input
 //so numeric registers just pass through, and invalid symbolic will trip the verifyRegister stage
-char* translateRegister(char *reg){
+char* translateRegister(char *Reg){
+    char *c;
+    c = "\n";
+    char *reg;
+    reg = strtok(Reg, c);
+
     //$zero
     if(strncmp(reg, "$zero", 10)==0){return "$0";}
     
