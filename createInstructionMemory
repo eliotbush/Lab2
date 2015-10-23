@@ -14,11 +14,23 @@
 #include <stdbool.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool verifyInstruction(char **);
 bool verifyRegister(char *);
 char* translateRegister(char *);
 bool verifyAddress(char *);
 bool verifyImmediate(char *);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct latch {
+    bool consumerFlag;
+    bool producerFlag;
+    int operandOne;
+    int operandTwo;
+    int destRegister;
+    char *opcode;
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,8 +51,6 @@ int main(int argc, const char * argv[]) {
         for(j=0; j<10; j++){instructionMemory[i][j] = NULL;}
     }
     
-    
-    
     FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
 
     
@@ -60,6 +70,21 @@ int main(int argc, const char * argv[]) {
         j++;
     }
     for(i=0;i<j;i++){printf("%s %s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3], instructionMemory[i][4]);}
+
+    struct latch IF_ID;
+    IF_ID.consumerFlag = true;
+    IF_ID.producerFlag = true;
+    IF_ID.operandOne = 0;
+    IF_ID.operandTwo = 1;
+    IF_ID.destRegister = 2;
+    IF_ID.opcode = (char *) malloc(10*sizeof(char));
+    strcpy(IF_ID.opcode, "add");
+    printf("consumerflag: %d\n", IF_ID.consumerFlag);
+    printf("producerflag: %d\n", IF_ID.producerFlag);
+    printf("operand one: %d\n", IF_ID.operandOne);
+    printf("operand teo: %d\n", IF_ID.operandTwo);
+    printf("dest register: %d\n", IF_ID.destRegister);
+    printf("opcode: %s", IF_ID.opcode);
 }
 
 
