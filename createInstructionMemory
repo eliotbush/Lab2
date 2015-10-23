@@ -26,23 +26,30 @@ bool verifyImmediate(char *);
 int main(int argc, const char * argv[]) {
     char ***instructionMemory;
     char *line;
+    line = (char *) malloc(100*sizeof(char));
     char delimiters[] = ", ";
     int i;
     int j;
-    int k;
     instructionMemory = (char***) malloc(512*sizeof(char**));
     for(i=0; i<512; i++){
         instructionMemory[i] = (char**) malloc(10*sizeof(char*));
-    }    
-
-
+        for(j=0; j<10; j++){instructionMemory[i][j] = (char *) malloc(10*sizeof(char));}
+    }
+    for(i=0; i<512; i++){
+        for(j=0; j<10; j++){instructionMemory[i][j] = NULL;}
+    }
+    
+    
+    
     FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
 
+    
     j=0;
     char *token;
+    token = (char * ) malloc(100*sizeof(char));
     while (fgets(line, 100, assembly_program) != NULL){
-	i=0;
-    	token = strtok(line, delimiters);
+        i=0;
+        token = strtok(line, delimiters);
         while(token != NULL){
             instructionMemory[j][i]= strdup(token);
             token = strtok(NULL, delimiters);
@@ -50,9 +57,9 @@ int main(int argc, const char * argv[]) {
         }
         //still working on verifyInstruction.
         assert(verifyInstruction(instructionMemory[j]));
-	j++;
+        j++;
     }
-    for(i=0;i<j;i++){printf("%s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3]);}
+    for(i=0;i<j;i++){printf("%s %s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3], instructionMemory[i][4]);}
 }
 
 
@@ -65,7 +72,7 @@ bool verifyInstruction(char **instr){
     if(strncmp(instr[0], "add", 10)==0){
         //verify arg count
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for add\n");
             return false;
         }
         //call other functions to translate/verify registers
@@ -77,7 +84,7 @@ bool verifyInstruction(char **instr){
     //sub instruction: same process as add
     else if(strncmp(instr[0], "sub", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for sub\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
@@ -87,7 +94,7 @@ bool verifyInstruction(char **instr){
     //need some clarification on how to verify immediates, right now it just always returns true if there's something in the imm field
     else if(strncmp(instr[0], "addi", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for addi\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));}
@@ -96,7 +103,7 @@ bool verifyInstruction(char **instr){
     //mul instruction
     else if(strncmp(instr[0], "mul", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for mul\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
@@ -105,7 +112,7 @@ bool verifyInstruction(char **instr){
     //lw
     else if(strncmp(instr[0], "lw", 10)==0){
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for lw\n");
             return false;
         }
         //here verifyAddress is used
@@ -115,7 +122,7 @@ bool verifyInstruction(char **instr){
     //sw (same as lw)
     else if(strncmp(instr[0], "sw", 10)==0){
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for sw\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));}
@@ -124,7 +131,7 @@ bool verifyInstruction(char **instr){
     //beq
     else if(strncmp(instr[0], "beq", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
-            printf("bad arg count\n");
+            printf("bad arg count for beq\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyAddress(instr[3]));}
@@ -202,7 +209,7 @@ char* translateRegister(char *Reg){
     c = "\n";
     char *reg;
     reg = strtok(Reg, c);
-
+    
     //$zero
     if(strncmp(reg, "$zero", 10)==0){return "$0";}
     
@@ -336,7 +343,7 @@ bool verifyAddress(char *Addr){
     c = "\n";
     char *addr;
     addr = strtok(Addr, c);
-
+    
     //if the first char isn't a number quit out
     if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
     
