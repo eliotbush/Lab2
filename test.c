@@ -8,16 +8,19 @@
 int main(int argc, const char * argv[]) {
     char ***instructionMemory;
     char *line;
+    line = (char *) malloc(100*sizeof(char));
     char delimiters[] = ", ";
     int i;
     int j;
-    int k;
     instructionMemory = (char***) malloc(512*sizeof(char**));
     for(i=0; i<512; i++){
         instructionMemory[i] = (char**) malloc(10*sizeof(char*));
-    }    
-
-
+        for(j=0; j<10; j++){instructionMemory[i][j] = (char *) malloc(10*sizeof(char));}
+    }
+    for(i=0; i<512; i++){
+        for(j=0; j<10; j++){instructionMemory[i][j] = NULL;}
+    }
+    
     FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
     assert (assembly_program != NULL);
     char *token;
