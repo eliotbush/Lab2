@@ -430,7 +430,22 @@ bool verifyAddress(char *addr){
 /////////////////////////////////////////////////////////////////////////////////////
 
 //need instructor clarification on this. should it just be a number?
-bool verifyImmediate(char *imm){return true;}
+bool verifyImmediate(char *imm){
+    
+    if((imm[0]-'0')<0 || (imm[0]-'0')>9){printf("not immediate: %s", imm); return false;}
+    
+    
+    int i;
+    //while pointer is pointing to a valid integer..
+    while(imm[i]-'0'>=0){
+        char c = *imm;
+        int num = c-'0';
+        i++;
+    }
+    
+    
+        
+        return true;}
 
 /////////////////////////////////////////////////////////////////////////////////////
 

@@ -2,13 +2,13 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:testImmediate.c">
+   </FileRef>
+   <FileRef
       location = "group:MIPSinterpret.py">
    </FileRef>
    <FileRef
       location = "group:README.md">
-   </FileRef>
-   <FileRef
-      location = "group:test.c">
    </FileRef>
    <FileRef
       location = "group:verifyInstruction.c">
@@ -19,5 +19,8 @@
    </FileRef>
    <FileRef
       location = "group:assemblyProgram.txt">
+   </FileRef>
+   <FileRef
+      location = "group:test.c">
    </FileRef>
 </Workspace>
