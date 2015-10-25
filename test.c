@@ -34,13 +34,11 @@ int main(int argc, const char * argv[]) {
             token = strtok(NULL, delimiters);
             i++;
         }
-        printf("%d: %s %s %s %s\n", j, instructionMemory[j][0], instructionMemory[j][1], instructionMemory[j][2], instructionMemory[j][3]);
+        printf("%d:%s %s %s %s\n", j+1, instructionMemory[j][0], instructionMemory[j][1], instructionMemory[j][2], instructionMemory[j][3]);
         //printf("%d: %s %s %s %s\n", j, p[0], p[1], p[2], p[3]);
         //memcpy(*(instructionMemory+j), p, 100);
 	j++;
     }
-
-    for(i=0;i<j;i++){printf("%s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3]);}
         
     
 
