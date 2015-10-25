@@ -19,6 +19,7 @@ int main(int argc, const char * argv[]) {
 
 
     FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
+    assert (assembly_program != NULL);
     char *token;
 
     j=0;

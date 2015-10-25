@@ -442,5 +442,5 @@ int main(int argc, char *argv[]){
 	for(j=1; j<=argc; j++){test[j-1] = argv[j];}
 
 	assert(verifyInstruction(test));
-	printf("instruction checks out");
+	printf("Instruction checks out\n");
 }

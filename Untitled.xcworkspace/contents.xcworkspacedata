@@ -8,6 +8,9 @@
       location = "group:README.md">
    </FileRef>
    <FileRef
+      location = "group:test.c">
+   </FileRef>
+   <FileRef
       location = "group:verifyInstruction.c">
    </FileRef>
    <FileRef
