@@ -1,0 +1,133 @@
+//MEM/////////////////////////////////////////////////////////////////////////////////////
+
+//check the counter: if it's not 0, we're in the middle of a memory access
+if (counter>1):
+	counter--
+	utilization++
+
+//if MEM isn't in the middle of a process but EX isn't done
+else if (counter==0 and EXMEMflag==used):
+	do nothing
+
+//if MEM is ready for an instruction and EX is done
+else if (counter==0 and EXMEMflag==unused):
+	put EXMEM latch into MEM latch
+	EXMEMflag = used
+	utilization++
+	if opcode == lw or sw:
+		counter = c-1
+		check the address (operand one) bounds
+	else if opcode == beq:
+		pc = operand one
+		branchFlag = false
+	else:
+		pass data into MEMWB
+		MEMWBflag = unused
+
+//if we're on the last step of the countdown
+else if (counter == 1):
+	utilization++
+	counter--
+	if opcode==sw:
+		put register's contents (destRegister field) into address (operand one)
+	if opcode==lw:
+		put contents at address (operand one) into operand one
+		pass data to MEMWB
+		MEMWBflag = unused
+
+//EX/////////////////////////////////////////////////////////////////////////////////////
+
+//check counter
+if (counter>1):
+	counter--
+	utilization++
+
+//if ID isn't done but EX is
+else if (counter==0 and IDEXflag==used):
+	do nothing
+
+//if ID and EX are ready
+else if(counter==0 and IDEXflag==unused):
+	put IDEX in EX latch
+	IDEXflag = used
+	utilization++
+	if opcode == mul:
+		counter = m-1
+	else:
+		counter = n-1
+
+//last step of countdown
+else if (counter==1):
+	if EXMEM==used:
+		counter--
+		utilization++
+		if opcode==mul:
+			operand one = operand one * operand two
+			put EX latch in EXMEM
+			EXMEMflag = unused
+		else if opcode==sub:
+			operand one = operand one - operand two
+			put EX latch in EXMEM
+			EXMEMflag = unused
+		else if opcode==beq:
+			if destination register == operand two:
+				operand one = operand one + pc
+				put EX latch in EXMEM
+				EXMEMflag = unused
+			else:
+				operand one = pc
+				put EX latch in EXMEM
+				EXMEMflag = unused
+		else:
+			operand one = operand one + operand two
+			put EX latch in EXMEM
+			EXMEMflag = unused
+		
+	else:
+		do nothing
+
+//ID/////////////////////////////////////////////////////////////////////////
+if (IFIDflag==used and IDflag==goahead):
+	do nothing
+
+else if (IDflag==wait):
+	if the registers have been freed up:
+		pull in operands
+		if IDEXflag==used:
+			put ID latch into IDEX
+			IDEXflag = unused
+			IDflag = goahead
+	else:
+		do nothing
+
+else:
+	pull IFID in
+	if opcode==add:
+		if registers free:
+			put operand 1 and 2 in
+			if IDEXflag==used:
+				put ID latch into IDEX
+				IDEXflag = unused
+			else:
+				IDflag = wait
+		else:
+			IDflag = wait
+
+//IF////////////////////////////////////////////////////////////////////////
+//check the counter: if it's not 0, we're in the middle of a memory access
+if (counter>1):
+	counter--
+	utilization++
+
+//if IF is ready for an instruction and ID is done
+else if (counter==0 and IFflag==wait and branchFlag==false):
+	counter = c-1
+	utilization++
+	if opcode==beq:
+		branchFlag==true
+
+else if (branchFlag == false):
+	get instruction based on pc
+	utilization++
+	counter--
+	
