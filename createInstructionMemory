@@ -20,8 +20,11 @@ bool verifyRegister(char *);
 char* translateRegister(char *);
 bool verifyAddress(char *);
 bool verifyImmediate(char *);
+struct inst convertInstruction(char **);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef enum {ADD, SUB, ADDI, MUL, LW, SW, BEQ} OPCODE;
 
 struct latch {
     bool consumerFlag;
@@ -29,64 +32,104 @@ struct latch {
     int operandOne;
     int operandTwo;
     int destRegister;
-    char *opcode;
+    OPCODE opcode;
 };
+
+struct inst {
+    OPCODE opcode;
+    int rs;
+    int rt;
+    int rd;
+    int immediate;
+};
+    
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 int main(int argc, const char * argv[]) {
-    char ***instructionMemory;
+    struct inst *instructionMemory;
+    instructionMemory = (struct inst *) malloc(512*sizeof(struct inst));
     char *line;
     line = (char *) malloc(100*sizeof(char));
     char delimiters[] = ", ";
     int i;
     int j;
-    instructionMemory = (char***) malloc(512*sizeof(char**));
-    for(i=0; i<512; i++){
-        instructionMemory[i] = (char**) malloc(10*sizeof(char*));
-        for(j=0; j<10; j++){instructionMemory[i][j] = (char *) malloc(10*sizeof(char));}
-    }
-    for(i=0; i<512; i++){
-        for(j=0; j<10; j++){instructionMemory[i][j] = NULL;}
-    }
-    
-    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
 
+    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
     
     j=0;
     char *token;
     token = (char * ) malloc(100*sizeof(char));
     while (fgets(line, 100, assembly_program) != NULL){
+        char **instructionString;
+        instructionString = (char **) malloc(10*sizeof(char*));
+	for(i=0; i<10; i++){instructionString[i] = NULL;}
         i=0;
         token = strtok(line, delimiters);
         while(token != NULL){
-            instructionMemory[j][i]= strdup(token);
+            instructionString[i] = strdup(token);
             token = strtok(NULL, delimiters);
             i++;
         }
+        //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
         //still working on verifyInstruction.
-        assert(verifyInstruction(instructionMemory[j]));
+        instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
-    for(i=0;i<j;i++){printf("%s %s %s %s %s\n", instructionMemory[i][0], instructionMemory[i][1], instructionMemory[i][2], instructionMemory[i][3], instructionMemory[i][4]);}
-
-    struct latch IF_ID;
-    IF_ID.consumerFlag = true;
-    IF_ID.producerFlag = true;
-    IF_ID.operandOne = 0;
-    IF_ID.operandTwo = 1;
-    IF_ID.destRegister = 2;
-    IF_ID.opcode = (char *) malloc(10*sizeof(char));
-    strcpy(IF_ID.opcode, "add");
-    printf("consumerflag: %d\n", IF_ID.consumerFlag);
-    printf("producerflag: %d\n", IF_ID.producerFlag);
-    printf("operand one: %d\n", IF_ID.operandOne);
-    printf("operand teo: %d\n", IF_ID.operandTwo);
-    printf("dest register: %d\n", IF_ID.destRegister);
-    printf("opcode: %s", IF_ID.opcode);
+    for (i=0; i<j; i++){printf("%d %d %d %d %d\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
+    
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//converts a instruction in the form of tokens into a struct
+struct inst convertInstruction(char **instr){
+    struct inst output;
+
+    //convert opcode field
+    if (strncmp(instr[0], "add", 10)==0){output.opcode = ADD;}
+    else if (strncmp(instr[0], "sub", 10)==0){output.opcode = SUB;}
+    else if (strncmp(instr[0], "addi", 10)==0){output.opcode = ADDI;}
+    else if (strncmp(instr[0], "mul", 10)==0){output.opcode = MUL;}
+    else if (strncmp(instr[0], "lw", 10)==0){output.opcode = LW;}
+    else if (strncmp(instr[0], "sw", 10)==0){output.opcode = SW;}
+    else if (strncmp(instr[0], "beq", 10)==0){output.opcode = BEQ;}
+
+    //convert rs and rt
+    char delimiters[] = "$\n";
+    char *regStr;
+    regStr = strtok(translateRegister(instr[1]), delimiters);
+    sscanf(regStr, "%i", &output.rs);
+
+    //addi or beq
+    if ((strncmp(instr[0], "addi", 10)==0) || (strncmp(instr[0], "beq", 10)==0)) {
+        regStr = strtok(translateRegister(instr[2]), delimiters);
+        sscanf(regStr, "%i", &output.rt);
+        regStr = strtok(instr[3], delimiters);
+        sscanf(regStr, "%i", &output.immediate);
+    }
+
+    //lw or sw
+    else if((strncmp(instr[0], "lw", 10)==0) || (strncmp(instr[0], "sw", 10)==0)) {
+        char delimiters2[] = "()";
+        regStr = strtok(instr[2], delimiters2);
+        sscanf(regStr, "%i", &output.immediate);
+        regStr = strtok(NULL, delimiters2);
+        regStr = translateRegister(regStr);
+        regStr = strtok(regStr, delimiters);
+        sscanf(regStr, "%i", &output.rt);
+    }
+
+    //rd
+    else {
+        regStr = strtok(translateRegister(instr[2]), delimiters);
+        sscanf(regStr, "%i", &output.rt);
+        regStr = strtok(translateRegister(instr[3]), delimiters);
+        sscanf(regStr, "%i", &output.rd);
+    }
+    return output;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
