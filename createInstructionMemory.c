@@ -457,7 +457,7 @@ bool verified=true;
         while(verified == true){
         for (i = 0; i<strlen(imm); i++){
 
-                if((imm[i]-'0')>=9){verified= false;}
+                if((imm[i]-'0')>9 || imm[i]-'0'<0){verified= false;}
         }
         }
 return verified;
