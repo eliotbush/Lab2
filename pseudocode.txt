@@ -119,15 +119,24 @@ if (counter>1):
 	counter--
 	utilization++
 
-//if IF is ready for an instruction and ID is done
-else if (counter==0 and IFflag==wait and branchFlag==false):
-	counter = c-1
+//if ID is ready for a new instruction and counter's 1
+else if (counter==1) and (IFIDflag = used):
 	utilization++
-	if opcode==beq:
-		branchFlag==true
-
-else if (branchFlag == false):
-	get instruction based on pc
-	utilization++
+	check pc for validity
+	pull instruction in from IM
 	counter--
+	//load instruction into IFID (instruction field)
+	IF_ID.instruction = instructionMemory[pc/4]
+	if branch, set branchFlag = true
+	pc = pc+4
+
+else if (counter==1) and (IFID == unused):
+	do nothing
+
+else if (counter==0) and (branchFlag == true):
+	do nothing
+
+else if (counter==0) and (branchFlag == false):
+	utilization++
+	counter = c-1
 	
