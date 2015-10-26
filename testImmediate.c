@@ -52,8 +52,9 @@ int main(int argc, const char * argv[]) {
     else(printf("Still grinding\n"));
     if((imm -'0')<0 || (imm -'0'>9)){printf("Not valid\n");}
     else(printf("Valid\n"));
+    */
     return 0;
-     */
+
 }
 
 
