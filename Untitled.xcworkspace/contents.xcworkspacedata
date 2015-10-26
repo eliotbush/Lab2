@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:createInstructionMemory.c">
+   </FileRef>
+   <FileRef
       location = "group:testImmediate.c">
    </FileRef>
    <FileRef
@@ -12,10 +15,6 @@
    </FileRef>
    <FileRef
       location = "group:verifyInstruction.c">
-   </FileRef>
-   <FileRef
-      location = "group:createInstructionMemory"
-      assignedFileDataType = "public.c-source">
    </FileRef>
    <FileRef
       location = "group:assemblyProgram.txt">
