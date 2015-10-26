@@ -451,5 +451,15 @@ bool verifyAddress(char *Addr){
 /////////////////////////////////////////////////////////////////////////////////////
 
 //need instructor clarification on this. should it just be a number?
-bool verifyImmediate(char *imm){return true;}
+bool verifyImmediate(char *imm){
+int i;
+bool verified=true;
+        while(verified == true){
+        for (i = 0; i<strlen(imm); i++){
+
+                if((imm[i]-'0')>=9){verified= false;}
+        }
+        }
+return verified;
+}
 ////////////////////////////////////////////////////////////////////////////////////
