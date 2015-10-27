@@ -18,10 +18,11 @@ int main(int argc, const char * argv[]) {
         printf("%s\n",argv[i]);
         strChar = argv[i];
         for(j = 0; j<strlen(strChar); j++){
-            printf("%c\n",strChar[0]);//this line is a char in the string array!
+            printf("%c\n",strChar[j]);//this line is a char in the string array!
         }
         
     }
     return 0;
     }
+
 
