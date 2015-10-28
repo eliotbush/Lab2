@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
-#include <string.h>
-#include <stdbool.h>
 
 /*///////////////////////////////
 1.Main is included
@@ -16,6 +10,17 @@ Examples:
 ./a.out b3
 
 ///////////////////////////////*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+#include <string.h>
+#include <stdbool.h>
+
+///////////////////////////////
+
+
+///////////////////////////////
 
 bool verifyImmediate(const char *imm){
 int i;
@@ -26,7 +31,9 @@ neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
 int value;
 bool isNeg = false;
 bool isNumber = true;
-bool isBit = true;
+bool isBit = false;
+bool isValid = false;
+bool isWTF = true;
 //preliminary stage: is it a number?
         for (i=0; i<strlen(imm); i++){
                 if((imm[i] - '0')>9 || imm[i]- '0'<0){
@@ -72,28 +79,36 @@ if(!isNeg&&isNumber){
 value = atoi(imm);
 printf("Value = %d\n", value);
 }
-
-/*isBit Test goes here*/
-//if(isNumber){
-//if(32768-value < 0){
-
-
-return isNumber;
+if(value < 0){isBit = false;
+        isWTF = true;
+        printf("WTF!\n");}
+        //isBit Test goes here
+if(isNumber){
+if(32768-value > 0){
+        isBit = true;
 }
+}
+
+if (isNumber && isBit && !isWTF){
+        isValid = true;
+}
+return isValid;
+}
+
 /////////////////////////////
 
 int main(int argc, const char* argv[]){
-printf("main\n");
+printf("Main\n");
 const char * test;
 test = (const char *) malloc(strlen(argv[1])*sizeof(char));
 test = argv[1];
 if(verifyImmediate(test)){
-printf("OK\n");
+        printf("Valid\n");
+}
+if(!verifyImmediate(test)){
+        printf("Invalid\n");
 }
 return 0;
 }
-
-
-
 
 
