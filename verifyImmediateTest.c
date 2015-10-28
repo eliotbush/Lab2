@@ -33,7 +33,7 @@ bool isNeg = false;
 bool isNumber = true;
 bool isBit = false;
 bool isValid = false;
-bool isWTF = true;
+bool isWTF = false;
 //preliminary stage: is it a number?
         for (i=0; i<strlen(imm); i++){
                 if((imm[i] - '0')>9 || imm[i]- '0'<0){
