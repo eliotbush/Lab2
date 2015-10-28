@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+#include <string.h>
+#include <stdbool.h>
+
+///////////////////////////////
+
+
+///////////////////////////////
+
+bool verifyImmediate(const char *imm){
+int i;
+const char * strChar;
+strChar = (const char *) malloc(strlen(imm)*sizeof(char));
+char * neg;
+neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
+int value;
+bool isNeg = false;
+bool isNumber = true;
+bool isBit = true;
+//preliminary stage: is it a number?
+        for (i=0; i<strlen(imm); i++){
+                if((imm[i] - '0')>9 || imm[i]- '0'<0){
+                        isNumber = false;
+
+}
+}
+//is it a negative number?
+if(imm[0] == '-'){
+        isNeg = true;
+        isNumber = true;
+        for (i = 1; i<strlen(imm); i++){
+                if((imm[i] - '0')>9 || imm[i] - '0'<0){
+                        isNumber = false;
+
+}
+}
+}
+
+if((imm[0] - '0') == 0){
+        isNumber = true;
+        for (i = 1; i<strlen(imm); i++){
+                if((imm[i] - '0')>9 || (imm[i] - '0')<0){
+                        isNumber = false;
+}
+}
+}
+//if it is a negative number than put the value into a pointer and convert that to an int
+if(isNeg&&isNumber){
+for(i = 1; i<strlen(imm); i++){
+        neg[i-1] = imm[i];
+//      printf("%c:%c\n",imm[i],neg[i-1]);
+}
+        value = atoi(neg);
+        printf("Value(-) = %d\n", value);
+        for (i = 0; i<strlen(imm); i++){
+//              printf( "%c\n",neg[i]);
+                }
+
+}
+//otherwise convert from the input pointer
+if(!isNeg&&isNumber){
+value = atoi(imm);
+printf("Value = %d\n", value);
+}
+
+/*isBit Test goes here*/
+//if(isNumber){
+//if(32768-value < 0){
+
+
+return isNumber;
+}
+/////////////////////////////
+
+int main(int argc, const char* argv[]){
+printf("main\n");
+const char * test;
+test = (const char *) malloc(strlen(argv[1])*sizeof(char));
+test = argv[1];
+if(verifyImmediate(test)){
+printf("OK\n");
+}
+return 0;
+}
+
+
+
+
+
