@@ -5,10 +5,17 @@
 #include <string.h>
 #include <stdbool.h>
 
-///////////////////////////////
+/*///////////////////////////////
+1.Main is included
+2.To test an input
+3.Call ./a.out with desired test input
 
+Examples:
+./a.out 12
+./a.out 09
+./a.out b3
 
-///////////////////////////////
+///////////////////////////////*/
 
 bool verifyImmediate(const char *imm){
 int i;
