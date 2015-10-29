@@ -515,13 +515,16 @@ if(isNumber){
         isBit = true;
 }
 }
-
+if(isNumber && isNeg){
+	if(value == 32768){
+		isBit = true;
+	}
+}
 if (isNumber && isBit && !isWTF){
         isValid = true;
 }
 return isBit;
 }
-
 
 
 
