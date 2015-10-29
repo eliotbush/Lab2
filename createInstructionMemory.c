@@ -461,53 +461,44 @@ int value;
 bool isNeg = false;
 bool isNumber = true;
 bool isBit = false;
-bool isValid = false;
-bool isWTF = false;
 //preliminary stage: is it a number?
-        for (i=0; i<strlen(imm); i++){
-                if((imm[i] - '0')>9 || imm[i]- '0'<0){
-                        isNumber = false;
-
+for (i=0; i<strlen(imm); i++){
+if((imm[i] - '0')>9 || imm[i]- '0'<0){
+isNumber = false;
 }
 }
 //is it a negative number?
-        if(imm[0] == '-'){
-                isNeg = true;
-                isNumber = true;
-                for (i = 1; i<strlen(imm); i++){
-                        if((imm[i] - '0')>9 || imm[i] - '0'<0){
-                                isNumber = false;
+if(imm[0] == '-'){
+isNeg = true;
+isNumber = true;
+for (i = 1; i<strlen(imm); i++){
+if((imm[i] - '0')>9 || imm[i] - '0'<0){
+isNumber = false;
+}
+}
+}
+//0 case
+if((imm[0] - '0') == 0){
+isNumber = true;
+for (i = 1; i<strlen(imm); i++){
+if((imm[i] - '0')>9 || (imm[i] - '0')<0){
+isNumber = false;
+}
+}
+}
+//If it is a negative number than put the value into a pointer and convert that to an int
+if(isNeg&&isNumber){
+for(i = 1; i<strlen(imm); i++){
+neg[i-1] = imm[i];
+}
+value = atoi(neg);
+}
+//Otherwise convert from the input pointer
+if(!isNeg&&isNumber){value = atoi(imm);}
 
-}
-}
-}
+//This is for those weird cases
 
-        if((imm[0] - '0') == 0){
-                isNumber = true;
-                for (i = 1; i<strlen(imm); i++){
-                        if((imm[i] - '0')>9 || (imm[i] - '0')<0){
-                                isNumber = false;
-}
-}
-}
-//if it is a negative number than put the value into a pointer and convert that to an int
-        if(isNeg&&isNumber){
-                for(i = 1; i<strlen(imm); i++){
-                        neg[i-1] = imm[i];
-}
-                value = atoi(neg);
-                //printf("Value(-) = %d\n", value);
-
-}
-//otherwise convert from the input pointer
-        if(!isNeg&&isNumber){
-                value = atoi(imm);
-                //printf("Value = %d\n", value);
-}
-if(value < 0){isBit = false;
-        isWTF = true;
-        //printf("WTF!\n");
-        }
+if(value < 0){isBit = false;}
 
 
 //isBit Test goes here
@@ -521,10 +512,7 @@ if(isNumber && isNeg){
 		isBit = true;
 	}
 }
-if (isNumber && isBit && !isWTF){
-        isValid = true;
-}
-return isBit;
+return (isNumber&&isBit);
 }
 
 
