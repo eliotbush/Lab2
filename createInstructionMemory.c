@@ -451,6 +451,7 @@ bool verifyAddress(char *Addr){
 /////////////////////////////////////////////////////////////////////////////////////
 
 //need instructor clarification on this. should it just be a number?
+//test print statements are commented out
 bool verifyImmediate(const char *imm){
 int i;
 char * neg;
@@ -494,17 +495,18 @@ bool isWTF = false;
                         neg[i-1] = imm[i];
 }
                 value = atoi(neg);
-                printf("Value(-) = %d\n", value);
+                //printf("Value(-) = %d\n", value);
 
 }
 //otherwise convert from the input pointer
         if(!isNeg&&isNumber){
                 value = atoi(imm);
-                printf("Value = %d\n", value);
+                //printf("Value = %d\n", value);
 }
 if(value < 0){isBit = false;
         isWTF = true;
-        printf("WTF!\n");}
+        //printf("WTF!\n");
+        }
 
 
 //isBit Test goes here
