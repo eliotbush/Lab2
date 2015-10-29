@@ -452,7 +452,7 @@ bool verifyAddress(char *Addr){
 
 //need instructor clarification on this. should it just be a number?
 //test print statements are commented out
-bool verifyImmediate(const char *imm){
+bool verifyImmediate(char *imm){
 int i;
 char * neg;
 neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
