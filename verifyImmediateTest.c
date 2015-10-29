@@ -22,10 +22,8 @@ Examples:
 
 ///////////////////////////////
 
-bool verifyImmediate(const char *imm){
+bool verifyImmediate(char *imm){
 int i;
-const char * strChar;
-strChar = (const char *) malloc(strlen(imm)*sizeof(char));
 char * neg;
 neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
 int value;
@@ -99,9 +97,9 @@ return isValid;
 
 int main(int argc, const char* argv[]){
 printf("Main\n");
-const char * test;
-test = (const char *) malloc(strlen(argv[1])*sizeof(char));
-test = argv[1];
+char * test;
+test = (char *) malloc(strlen(argv[1])*sizeof(char));
+test = (char *) argv[1];
 if(verifyImmediate(test)){
         printf("Valid\n");
 }
