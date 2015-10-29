@@ -74,7 +74,8 @@ int main(int argc, const char * argv[]) {
         }
         //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
         //still working on verifyInstruction.
-        instructionMemory[j] = convertInstruction(instructionString);
+        //we need to test convertInstruction function
+        //instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
     for (i=0; i<j; i++){printf("%d %d %d %d %d\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
