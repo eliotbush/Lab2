@@ -21,17 +21,18 @@ char* translateRegister(char *);
 bool verifyAddress(char *);
 bool verifyImmediate(char *);
 struct inst convertInstruction(char **);
+void MEM(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef enum {ADD, SUB, ADDI, MUL, LW, SW, BEQ} OPCODE;
 
 struct latch {
-    bool consumerFlag;
-    bool producerFlag;
+    bool flag;
     int operandOne;
     int operandTwo;
     int destRegister;
+    int counter;
     OPCODE opcode;
 };
 
@@ -42,12 +43,29 @@ struct inst {
     int rd;
     int immediate;
 };
+
+bool branchFlag;
+int pc;
+int c;
+int MEMutilization;
+struct latch EXMEMlatch;
+struct latch MEMWBlatch;
+struct latch MEMlatch;
+int *dataMemory;
+int *registers;
     
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 int main(int argc, const char * argv[]) {
+    c = 5;
+    MEMutilization=0;
+    registers = (int *) malloc(32*sizeof(int));
+    for(i=0; i<32; i++){registers[i] = 0;}
+    dataMemory = (int *) malloc(512*sizeof(int));
+    for(i=0; i<512; i++){dataMemory[i] = 0;}
+
     struct inst *instructionMemory;
     instructionMemory = (struct inst *) malloc(512*sizeof(struct inst));
     char *line;
@@ -75,12 +93,13 @@ int main(int argc, const char * argv[]) {
         //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
         //still working on verifyInstruction.
         //we need to test convertInstruction function
-        //instructionMemory[j] = convertInstruction(instructionString);
+        instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
     for (i=0; i<j; i++){printf("%d %d %d %d %d\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
-    
 }
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -519,3 +538,42 @@ return (isNumber&&isBit);
 
 
 ////////////////////////////////////////////////////////////////////////////////////
+
+void MEM(void){
+    //check the counter: if it's not 0, we're in the middle of a memory access
+    if (MEMlatch.counter>1){
+        MEMlatch.counter--;
+        MEMutilization++;
+    }
+
+    //if MEM is ready for an instruction and EX is done
+    else if (MEMlatch.counter==0 && EXMEMlatch.flag==true){
+        MEMlatch = EXMEMlatch;
+        EXMEMlatch.flag = false;
+        MEMutilization++;
+        if ((MEMlatch.opcode==LW) || (MEMlatch.opcode==SW)){
+            MEMlatch.counter = c-1;
+            if ((MEMlatch.operandOne>2048)||(MEMlatch.operandOne % 4 != 0)){
+                printf("Invalid address: %d\n", MEMlatch.operandOne);
+                assert((MEMlatch.operandOne<=2048)&&(MEMlatch.operandOne % 4 == 0));
+            }
+        }
+        else if (MEMlatch.opcode==BEQ){
+            pc = MEMlatch.operandOne;
+            branchFlag = false;
+        }
+        else{MEMWBlatch = MEMlatch;}
+            
+    }
+
+    //if we're on the last step of the countdown
+    else if (MEMlatch.counter==1){
+        MEMutilization++;
+        MEMlatch.counter--;
+        if (MEMlatch.opcode==SW){dataMemory[MEMlatch.operandOne/4] = MEMlatch.destRegister;}
+        else {
+            MEMlatch.operandOne = dataMemory[MEMlatch.operandOne/4];
+            MEMWBlatch = MEMlatch;
+        }
+    }
+}
