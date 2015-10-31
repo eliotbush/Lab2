@@ -424,48 +424,46 @@ char* translateRegister(char *Reg){
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-//verify that an address is valid
-//returns bool for conditionals
 bool verifyAddress(char *Addr){
-    char *c;
-    c = "\n";
-    char *addr;
-    addr = strtok(Addr, c);
+bool isValid;
+char * offset;
+char * reg;
+int i;
+int j;
+int k = 0;
+printf("%s\n",Addr);
+if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
+    return false;
+}
+if(Addr[(strlen(Addr)-1)]!=')'){
+    return false;
+}
+for(i = strlen(Addr)-1; i>-1;i--){
+    printf("loop %d: %c\n", i+1, Addr[i]);
+        //register storage
+        if(Addr[i] == '$'){
+            reg = (char *) malloc(10*sizeof(char));
+            for(j=i; j<strlen(Addr)-1; j++){
+                reg[k]=Addr[i+k];
+                printf("nested loop %d: %c\n",k, Addr[i+k]);
+                k++;
+            }
+        
+        }
+       //offset storage 
+        if(Addr[i] == '('){
+            offset = (char *) malloc(10*sizeof(char));
+            for(j=0; j<i;j++){
+                offset[j]=Addr[j];
+            }
+        }
+}
+printf("%s, %s\n", reg, offset);
+if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
+    return true;
     
-    //if the first char isn't a number quit out
-    if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
-    
-    int i=0;
-    //while addr[i] is a number
-    while((addr[i]-'0')>=0 && (addr[i]-'0')<=9){i++;}
-    
-    //if addr[i] isn't (
-    if(addr[i]!='('){printf("bad address: %s\n", addr); return false;}
-    
-    else{
-        //make a copy (strtok will mess up addr if we don't)
-        char *addrCopy;
-        addrCopy = (char *) malloc(100*sizeof(char));
-        strcpy(addrCopy, addr);
-        //delimiter for strtok
-        char delimiter[] = "()";
-        //token1 is junk
-        char *token1;
-        //token2 should (hopefully) hold the register name inside offset($reg)
-        char *token2;
-        token1 = (char *) malloc(100*sizeof(char));
-        token2 = (char *) malloc(100*sizeof(char));
-        //cut up addrCopy
-        token1 = strtok(addrCopy, delimiter);
-        //this is the actual register
-        token2 = strtok(NULL, delimiter);
-        //if there's other stuff after the ) delimiter, the address is bad
-        if(strlen(addr)>(i+strlen(token2)+2)){printf("bad address: %s\n", addr); return false;}
-        //if the register is legal and the last character was a ')' (otherwise it could be '(') it's valid
-        else if(verifyRegister(translateRegister(token2)) && addr[strlen(addr)-1]==')'){return true;}
-        //otherwise not
-        else{printf("bad address: %s\n", addr); return false;}
-    }
+}
+return false;    
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
