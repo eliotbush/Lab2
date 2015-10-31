@@ -220,8 +220,6 @@ if(Addr[(strlen(Addr)-1)]!=')'){
 }
 for(i = strlen(Addr)-1; i>-1;i--){
     printf("loop %d: %c\n", i+1, Addr[i]);
-       /* This block is to store the register of the argument*/
-       
         if(Addr[i] == '$'){
             reg = (char *) malloc(10*sizeof(char));
             for(j=i; j<strlen(Addr)-1; j++){
@@ -230,19 +228,14 @@ for(i = strlen(Addr)-1; i>-1;i--){
                 k++;
             }
         
-        }//end if block 1
-        
-        
-        
-        /*if(Addr[i] == '('){
-            offset = (char *) malloc(10*sizeof(char));
-            for(j=0; j<i;j++){
-                offset[j]=Addr[j];
         }
-}*/
+        
+        
+
+
+}
 printf("%s\n", reg);
    return true;
-}
 }
    /* //if the first char isn't a number quit out
     if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
