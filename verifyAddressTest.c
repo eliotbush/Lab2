@@ -204,16 +204,25 @@ else{return reg;}
 ////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////
 bool verifyAddress(char *Addr){
-printf("x\n");
-    char *c;
-printf("x\n");
-    c = "\n";
-printf("x\n");
-    char *addr;
-printf("z/n");
-addr = (char *) malloc(10*sizeof(char));
-    addr = strtok(Addr, c);
-    //if the first char isn't a number quit out
+bool isValid;
+char * offset;
+char * reg;
+int i;
+int j;
+printf("%s\n",Addr);
+if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
+    return false;
+}
+if(Addr[(strlen(Addr)-1)]!=')'){
+    return false;
+}
+for(i = strlen(Addr)-1; i>-1;i--){
+    printf("loop %d: %c\n", i+1, Addr[i]);
+        if(Addr[])
+}
+printf("z\n");
+   return true;
+   /* //if the first char isn't a number quit out
     if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
 
 int i=0;
@@ -246,7 +255,7 @@ int i=0;
         else if(verifyRegister(translateRegister(token2)) && addr[strlen(addr)-1]==')'){return true;}
         //otherwise not
         else{printf("bad address: %s\n", addr); return false;}
-    }
+    }*/
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, const char* argv[]){
@@ -255,9 +264,12 @@ test = (char *) malloc(10*sizeof(char));
 test = "100($s1)";
 printf("Main\n");
 if(verifyAddress(test)){
-printf("Addressed Verified");
+printf("Addressed Verified\n");
 }
-return 0;
+else if(!verifyAddress(test)){
+    printf("Invalid Address\n");
 }
 
+return 0;
+}
 
