@@ -22,6 +22,8 @@ bool verifyAddress(char *);
 bool verifyImmediate(char *);
 struct inst convertInstruction(char **);
 void MEM(void);
+void IF(void);
+void ID(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
