@@ -47,12 +47,20 @@ struct inst {
 bool branchFlag;
 int pc;
 int c;
+int IFutilization;
+int IDutilization;
 int MEMutilization;
+struct latch IFIDlatch;
+struct latch IDEXlatch;
 struct latch EXMEMlatch;
 struct latch MEMWBlatch;
+struct latch IFlatch;
+struct latch IDlatch;
 struct latch MEMlatch;
 int *dataMemory;
 int *registers;
+bool *registerFlags;
+struct inst *instructionMemory;
     
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -569,6 +577,167 @@ void MEM(void){
         else {
             MEMlatch.operandOne = dataMemory[MEMlatch.operandOne/4];
             MEMWBlatch = MEMlatch;
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void IF(void){
+    //if we're in the middle of a memory access
+    if(IFlatch.counter>1){
+        IFlatch.counter--;
+        IFutilization++;
+    }
+
+    //if ID is ready for a new instruction and counter's 1
+    else if ((IFlatch.counter==1)&&(IFIDlatch.flag==false)) {
+        IFutilization++;
+        assert((pc%4==0)&&(pc>=0));
+        IFlatch.instruction = instructionMemory[pc/4];
+        IFlatch.counter--;
+        branchFlag =  (IFlatch.instruction.opcode==BEQ);
+        IFIDlatch = IFlatch;
+        IFIDlatch.flag = true;
+        pc = pc+4;
+    }
+
+    //if IF is ready for a new instruction and there are no unresolved brnaches
+    else if ((IFlatch.counter==0)&&(branchFlag==false)){
+        if(c>1){
+            IFlatch.counter=c-1;
+            IFutilization++;
+        }
+	else if (IFIDlatch.flag){
+            IFutilization++;
+            assert((pc>=0)&&(pc%4==0));
+            IFlatch.instruction = instructionMemory[pc/4];
+            branchFlag =  (IFlatch.instruction.opcode==BEQ);
+            pc = pc+4;
+            IFIDlatch = IFlatch;
+            IFIDlatch.flag = false;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+void ID(void){
+    if (IDlatch.flag && IFIDlatch.flag){
+        IDlatch = IFIDlatch;
+        IFIDlatch.flag = false;
+        IDutilization++;
+        if (IDlatch.instruction.opcode==ADD || IDlatch.instruction.opcode==SUB || IDlatch.instruction.opcode==MUL){
+            if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
+                IDlatch.operandOne = registers[IDlatch.instruction.rs];
+                IDlatch.operandTwo = registers[IDlatch.instruction.rt];
+                registerFlags[IDlatch.instruction.rd] = false;
+                IDlatch.destRegister = IDlatch.instruction.rd;
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag){IDlatch.flag==false;}
+                else{IDEXlatch = IDlatch;}
+            }
+            else{IDlatch.flag == false;}
+        }
+        else if (IDlatch.instruction.opcode==ADDI){
+            if (registerFlags[IDlatch.instruction.rs]){
+                IDlatch.operandOne = registers[IDlatch.instruction.rs];
+                IDlatch.operandTwo = IDlatch.instruction.immediate;
+                IDlatch.destRegister = IDlatch.instruction.rt;
+                registerFlags[IDlatch.instruction.rt] = false;
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag){IDlatch.flag==false;}
+                else{IDEXlatch = IDlatch;}
+            }
+            else{IDlatch.flag == false;}
+        }
+        else if (IDlatch.instruction.opcode==BEQ){
+            if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
+                IDlatch.operandTwo = registers[IDlatch.instruction.rs];
+                IDlatch.operandOne = IDlatch.instruction.immediate;
+                IDlatch.destRegister = registers[IDlatch.instruction.rt];
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag){IDlatch.flag==false;}
+                else{IDEXlatch = IDlatch;}
+            }
+            else{IDlatch.flag == false;}
+        }
+        else if (IDlatch.instruction.opcode==LW || IDlatch.instruction.opcode==SW){
+            if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
+                IDlatch.operandTwo = registers[IDlatch.instruction.rs];
+                IDlatch.operandOne = IDlatch.instruction.immediate;
+                if(IDlatch.instruction.opcode==LW){IDlatch.destRegister = registers[IDlatch.instruction.rt];}
+                else{
+                    IDlatch.destRegister = IDlatch.instruction.rt;
+                    registerFlags[IDlatch.instruction.rt] = false;
+                }
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag){IDlatch.flag==false;}
+                else{IDEXlatch = IDlatch;}
+            }
+            else{IDlatch.flag == false;}
+        }
+        
+    }
+
+    else if(IDlatch.flag==false){
+        if (IDlatch.instruction.opcode==ADD || IDlatch.instruction.opcode==SUB || IDlatch.instruction.opcode==MUL){
+            if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
+                IDlatch.flag = true;
+                IDlatch.operandOne = registers[IDlatch.instruction.rs];
+                IDlatch.operandTwo = registers[IDlatch.instruction.rt];
+                registerFlags[IDlatch.instruction.rd];
+                IDlatch.destRegister = IDlatch.instruction.rd;
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag==false){
+                    IDEXlatch = IDlatch;
+                    IDutilization++;
+                }
+            }
+        }
+        else if (IDlatch.instruction.opcode==ADDI){
+            if (registerFlags[IDlatch.instruction.rs]){
+                IDlatch.flag = true;
+                IDlatch.operandOne = registers[IDlatch.instruction.rs];
+                IDlatch.operandTwo = IDlatch.instruction.immediate;
+                IDlatch.destRegister = IDlatch.instruction.rt;
+                registerFlags[IDlatch.instruction.rt] = false;
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag==false){
+                    IDEXlatch = IDlatch;
+                    IDutilization++;
+                }
+            }
+        }
+        else if (IDlatch.instruction.opcode==BEQ){
+            if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
+                IDlatch.flag = true;
+                IDlatch.operandTwo = registers[IDlatch.instruction.rs];
+                IDlatch.operandOne = IDlatch.instruction.immediate;
+                IDlatch.destRegister = registers[IDlatch.instruction.rt];
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag==false){
+                    IDEXlatch = IDlatch;
+                    IDutilization++;
+                }
+            }
+        }
+        else if (IDlatch.instruction.opcode==LW || IDlatch.instruction.opcode==SW){
+            if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
+                IDlatch.flag = true;
+                IDlatch.operandTwo = registers[IDlatch.instruction.rs];
+                IDlatch.operandOne = IDlatch.instruction.immediate;
+                if(IDlatch.instruction.opcode==LW){IDlatch.destRegister = registers[IDlatch.instruction.rt];}
+                else{
+                    IDlatch.destRegister = IDlatch.instruction.rt;
+                    registerFlags[IDlatch.instruction.rt] = false;
+                }
+                IDlatch.opcode = IDlatch.instruction.opcode;
+                if(IDEXlatch.flag==false){
+                    IDEXlatch = IDlatch;
+                    IDutilization++;
+                }
+            }
         }
     }
 }
