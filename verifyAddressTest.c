@@ -230,12 +230,21 @@ for(i = strlen(Addr)-1; i>-1;i--){
         
         }
         
-        
+        if(Addr[i] == '('){
+            offset = (char *) malloc(10*sizeof(char));
+            for(j=0; j<i;j++){
+                offset[j]=Addr[j];
+            }
+        }
 
 
 }
-printf("%s\n", reg);
-   return true;
+printf("%s, %s\n", reg, offset);
+if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
+    return true;
+    
+}
+return false;    
 }
    /* //if the first char isn't a number quit out
     if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
