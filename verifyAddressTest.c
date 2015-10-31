@@ -209,6 +209,8 @@ char * offset;
 char * reg;
 int i;
 int j;
+int k = 0;
+int y;
 printf("%s\n",Addr);
 if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
     return false;
@@ -218,10 +220,30 @@ if(Addr[(strlen(Addr)-1)]!=')'){
 }
 for(i = strlen(Addr)-1; i>-1;i--){
     printf("loop %d: %c\n", i+1, Addr[i]);
-        //if(Addr[])
-}
-printf("z\n");
+       /* This block is to store the register of the argument*/
+       
+        if(Addr[i] == '$'){
+            reg = (char *) malloc(10*sizeof(char));
+            for(j=i; j<strlen(Addr)-1; j++){
+                reg[k]=Addr[i+k];
+                printf("nested loop %d: %c\n",k, Addr[i+k]);
+                k++;
+            }
+        
+        }//end if block 1
+        
+        
+        
+        /*if(Addr[i] == '('){
+            offset = (char *) malloc(10*sizeof(char));
+            for(j=0; j<i;j++){
+                offset[j]=Addr[j];
+        }
+}*/
+printf("%s\n", reg);
    return true;
+}
+}
    /* //if the first char isn't a number quit out
     if((addr[0]-'0')<0 || (addr[0]-'0')>9){printf("bad address: %s", addr); return false;}
 
@@ -256,7 +278,7 @@ int i=0;
         //otherwise not
         else{printf("bad address: %s\n", addr); return false;}
     }*/
-}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, const char* argv[]){
 char * test;
