@@ -218,7 +218,7 @@ if(Addr[(strlen(Addr)-1)]!=')'){
 }
 for(i = strlen(Addr)-1; i>-1;i--){
     printf("loop %d: %c\n", i+1, Addr[i]);
-        if(Addr[])
+        //if(Addr[])
 }
 printf("z\n");
    return true;
