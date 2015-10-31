@@ -631,8 +631,8 @@ void ID(void){
         IDutilization++;
         if (IDlatch.instruction.opcode==ADD || IDlatch.instruction.opcode==SUB || IDlatch.instruction.opcode==MUL){
             if (registerFlags[IDlatch.instruction.rs] && registerFlags[IDlatch.instruction.rt]){
-                IDlatch.operandOne = registers[IDlatch.instruction.rs];
-                IDlatch.operandTwo = registers[IDlatch.instruction.rt];
+                IDlatch.operandOne = registers[IDlatch.instruction.rs]; //Minuend
+                IDlatch.operandTwo = registers[IDlatch.instruction.rt];//Subtrahend
                 registerFlags[IDlatch.instruction.rd] = false;
                 IDlatch.destRegister = IDlatch.instruction.rd;
                 IDlatch.opcode = IDlatch.instruction.opcode;
