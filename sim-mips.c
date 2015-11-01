@@ -499,7 +499,7 @@ int i;
 int j;
 int k = 0;
 int y;
-printf("%s\n",Addr);
+
 if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
     return false;
 }
@@ -507,12 +507,10 @@ if(Addr[(strlen(Addr)-1)]!=')'){
     return false;
 }
 for(i = strlen(Addr)-1; i>-1;i--){
-    printf("loop %d: %c\n", i+1, Addr[i]);
         if(Addr[i] == '$'){
             reg = (char *) malloc(10*sizeof(char));
             for(j=i; j<strlen(Addr)-1; j++){
                 reg[k]=Addr[i+k];
-                printf("nested loop %d: %c\n",k, Addr[i+k]);
                 k++;
             }
         
