@@ -1,0 +1,20 @@
+void WB_stage(){
+    //If the latch has a fresh instruction, do a write back for instructions which write to the register
+    //file.
+    if(MEM_WB.flag == true){
+        if(MEM_WB.opcode == ADDI || MEM_WB.opcode == ADD || MEM_WB.opcode == SUB || MEM_WB.opcode == MUL || MEM_WB.opcode == LW){
+            if(MEM_WB.destRegister != 0){
+                registerFile[MEM_WB.destRegister] = MEM_WB.operandOne;
+                registerFlags[MEM_WB.destRegister] = true;
+                MEM_WB.flag = false;
+            }
+        }
+        //if the instruction didn't require write back, just reset the producer latch flag and increment
+        //utilization.
+        else{
+            MEM_WB.flag = false;
+            WB_util++;
+        }
+    }
+        
+}
