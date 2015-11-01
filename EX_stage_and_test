@@ -109,7 +109,7 @@ int main(int argc, const char *argv[]){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void EX_stage(){
-    bool ct = true;
+    bool ct = true; //prevents me from having to use else and changing indentation
     //When the counter gets down to 1, if the EX_MEM latch is open, do the operation and dump the
     //result into the latch. If the consumer latch is not available, the block is skipped, the function
     //returns, and the counter stays at 1 for the next function call.
