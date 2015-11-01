@@ -767,7 +767,8 @@ void ID_stage(void){
             if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
-                if(ID.instruction.opcode==LW){ID.destRegister = mips_reg[ID.instruction.rt];}
+                if(ID.instruction.opcode==SW){
+                    ID.destRegister = mips_reg[ID.instruction.rt];}
                 else{
                     ID.destRegister = ID.instruction.rt;
                     registerFlags[ID.instruction.rt] = false;
@@ -834,7 +835,7 @@ void ID_stage(void){
                 ID.flag = true;
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
-                if(ID.instruction.opcode==LW){ID.destRegister = mips_reg[ID.instruction.rt];}
+                if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
                 else{
                     ID.destRegister = ID.instruction.rt;
                     registerFlags[ID.instruction.rt] = false;
