@@ -1,5 +1,63 @@
-//Here's the EX stage not officially debugged, but probably right, comments not done
 
+//Here's the EX stage not officially debugged, but probably right, comments not done
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+#include <string.h>
+#include <stdbool.h>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool verifyInstruction(char **);
+bool verifyRegister(char *);
+char* translateRegister(char *);
+bool verifyAddress(char *);
+bool verifyImmediate(char *);
+struct inst convertInstruction(char **);
+void MEM(void);
+void IF(void);
+void ID(void);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef enum {ADD, SUB, ADDI, MUL, LW, SW, BEQ} OPCODE;
+
+struct latch {
+    bool flag;
+    int operandOne;
+    int operandTwo;
+    int destRegister;
+    int counter;
+    OPCODE opcode;
+};
+
+struct inst {
+    OPCODE opcode;
+    int rs;
+    int rt;
+    int rd;
+    int immediate;
+};
+
+bool branchFlag;
+int pc;
+int c;
+int IFutilization;
+int IDutilization;
+int MEMutilization;
+struct latch IFIDlatch;
+struct latch IDEXlatch;
+struct latch EXMEMlatch;
+struct latch MEMWBlatch;
+struct latch IFlatch;
+struct latch IDlatch;
+struct latch MEMlatch;
+int *dataMemory;
+int *registers;
+bool *registerFlags;
+struct inst *instructionMemory;
+ 
 
 void EX_stage(){
     //if EX stage is in the middle of an operation and the counter for the stage is greater than 1,
@@ -108,4 +166,3 @@ void EX_stage(){
     }
     
 }
-
