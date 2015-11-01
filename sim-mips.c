@@ -500,23 +500,39 @@ int j;
 int k = 0;
 int y;
 
+//First tests are to make sure that the address is valid from the start
+
 if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
     return false;
 }
+
+
 if(Addr[(strlen(Addr)-1)]!=')'){
     return false;
 }
+
+//After passing the initial tests the for loop iterates through the string from the last index to the first
+
 for(i = strlen(Addr)-1; i>-1;i--){
+	//During the backwards traversal it checks for the register's signature ($)
+	
         if(Addr[i] == '$'){
+        	//if and when this symbol is found then store the register into a character pointer using a for loop.
             reg = (char *) malloc(10*sizeof(char));
             for(j=i; j<strlen(Addr)-1; j++){
                 reg[k]=Addr[i+k];
-                k++;
+                k++;//this is included because the reference to the new character pointer must be from index zero
+                //this iterates through in the middle of the loop and keeps the indices lined up
             }
         
         }
         
+        
+        
         if(Addr[i] == '('){
+        	//if and when the open paren is found store all the characters up to the open paran
+        	//into a character pointer reserved for the offset value
+        	
             offset = (char *) malloc(10*sizeof(char));
             for(j=0; j<i;j++){
                 offset[j]=Addr[j];
@@ -525,7 +541,9 @@ for(i = strlen(Addr)-1; i>-1;i--){
 
 
 }
-printf("%s, %s\n", reg, offset);
+//the character pointers can now be input into their respective test functions
+//there is however a need to translate the reg pointer before a call to verifyRegister is made
+
 if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
     return true;
     
@@ -538,65 +556,66 @@ return false;
 //need instructor clarification on this. should it just be a number?
 //test print statements are commented out
 bool verifyImmediate(char *imm){
-int i;
-char * neg;
-neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
-int value;
-bool isNeg = false;
-bool isNumber = true;
-bool isBit = false;
-//preliminary stage: is it a number?
-for (i=0; i<strlen(imm); i++){
-if((imm[i] - '0')>9 || imm[i]- '0'<0){
-isNumber = false;
-}
-}
-//is it a negative number?
-if(imm[0] == '-'){
-isNeg = true;
-isNumber = true;
-for (i = 1; i<strlen(imm); i++){
-if((imm[i] - '0')>9 || imm[i] - '0'<0){
-isNumber = false;
-}
-}
-}
-//0 case
-if((imm[0] - '0') == 0){
-isNumber = true;
-for (i = 1; i<strlen(imm); i++){
-if((imm[i] - '0')>9 || (imm[i] - '0')<0){
-isNumber = false;
-}
-}
-}
-//If it is a negative number than put the value into a pointer and convert that to an int
-if(isNeg&&isNumber){
-for(i = 1; i<strlen(imm); i++){
-neg[i-1] = imm[i];
-}
-value = atoi(neg);
-}
-//Otherwise convert from the input pointer
-if(!isNeg&&isNumber){value = atoi(imm);}
-
-//This is for those weird cases
-
-if(value < 0){isBit = false;}
-
-
-//isBit Test goes here
-if(isNumber){
-	if(32768-value > 0){
-        isBit = true;
-}
-}
-if(isNumber && isNeg){
-	if(value == 32768){
-		isBit = true;
-	}
-}
-return (isNumber&&isBit);
+    int i;
+    char * neg;
+    neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
+    int value;
+    bool isNeg = false;
+    bool isNumber = true;
+    bool isBit = false;
+   
+    //preliminary stage: is it a number?
+    for (i=0; i<strlen(imm); i++){
+        if((imm[i] - '0')>9 || imm[i]- '0'<0){
+            isNumber = false;
+        }
+    }
+    //is it a negative number?
+    if(imm[0] == '-'){
+        isNeg = true;
+        isNumber = true;
+        for (i = 1; i<strlen(imm); i++){
+            if((imm[i] - '0')>9 || imm[i] - '0'<0){
+                isNumber = false;
+            }
+        }
+    }
+    //0 case
+    if((imm[0] - '0') == 0){
+        isNumber = true;
+        for (i = 1; i<strlen(imm); i++){
+            if((imm[i] - '0')>9 || (imm[i] - '0')<0){
+                isNumber = false;
+            }
+        }
+    }
+    //If it is a negative number than put the value into a pointer and convert that to an int
+    if(isNeg&&isNumber){
+        for(i = 1; i<strlen(imm); i++){
+            neg[i-1] = imm[i];
+        }
+        value = atoi(neg);
+    }
+    //Otherwise convert from the input pointer
+    if(!isNeg&&isNumber){value = atoi(imm);}
+    
+    //This is for those weird cases
+    
+    if(value < 0){isBit = false;}
+    
+    
+    //isBit Test goes here
+    if(isNumber){
+        if(32768-value > 0){
+            isBit = true;
+        }
+    }
+    if(isNumber && isNeg){
+        if(value == 32768){
+            isBit = true;
+        }
+    }
+    return (isNumber&&isBit);
 }
 
 
