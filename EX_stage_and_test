@@ -109,18 +109,12 @@ int main(int argc, const char *argv[]){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void EX_stage(){
-    //If EX stage is in the middle of an operation and the counter for the stage is greater than 1,
-    //increment the utilization for EX and decrement the counter so that we know EX was doing work and so
-    //the operation advances.
-    if(EX.counter > 1){
-        EX.counter--;
-        EX_util++;
-    }
-    
+    bool ct = true;
     //When the counter gets down to 1, if the EX_MEM latch is open, do the operation and dump the
     //result into the latch. If the consumer latch is not available, the block is skipped, the function
     //returns, and the counter stays at 1 for the next function call.
     if(EX.counter == 1){
+        ct = false;
         if(EX_MEM.flag == false){
             EX.counter--;
             EX_util++;
@@ -151,6 +145,13 @@ void EX_stage(){
         }
         
     }
+    //If EX stage is in the middle of an operation and the counter for the stage is greater than 1,
+    //increment the utilization for EX and decrement the counter so that we know EX was doing work and so
+    //the operation advances.
+    if(EX.counter > 1){
+        EX.counter--;
+        EX_util++;
+    }
     
     //If EX has completed its operation but the producer latch (ID_EX) doesn't have a fresh instruction,
     //"do nothing" /void operation
@@ -170,7 +171,7 @@ void EX_stage(){
     //incrementing the utilization, as it will be incremented later).
     
     //Utilization is incremented when appropriate.
-    if (EX.counter == 0 && ID_EX.flag == true){
+    if (EX.counter == 0 && ID_EX.flag == true && ct == true){
         EX = ID_EX;
         ID_EX.flag = false;
         EX_util++;
@@ -237,3 +238,4 @@ void EX_stage(){
     }
 
 }
+
