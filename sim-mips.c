@@ -158,7 +158,10 @@ int main(int argc, const char * argv[]) {
 	printf("press ENTER to continue\n");
 	while(getchar() != '\n');
     }
+
+	return 0;
 }
+
 
 
 
