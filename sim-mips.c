@@ -847,6 +847,7 @@ void WB_stage(void){
     if(MEM_WB.flag == true){
         if(MEM_WB.opcode == ADDI || MEM_WB.opcode == ADD || MEM_WB.opcode == SUB || MEM_WB.opcode == MUL || MEM_WB.opcode == LW){
             if(MEM_WB.destRegister != 0){
+            	WB_util++;
                 mips_reg[MEM_WB.destRegister] = MEM_WB.operandOne;
                 registerFlags[MEM_WB.destRegister] = true;
                 MEM_WB.flag = false;
