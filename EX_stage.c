@@ -42,11 +42,13 @@ struct inst {
 };
 
 bool branchFlag;
-int pc;
+int PC;
 int c;
-int IFutilization;
-int IDutilization;
-int MEMutilization;
+int IF_util;
+int ID_util;
+int MEM_util;
+int EX_util;
+int WB_util;
 struct latch IF, IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB;
 int *dataMemory;
 int *registers;
