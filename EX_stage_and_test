@@ -156,7 +156,7 @@ void EX_stage(){
     //If EX has completed its operation but the producer latch (ID_EX) doesn't have a fresh instruction,
     //"do nothing" /void operation
     else
-        if (EX.counter == 0 && ID_EX.flag == false)
+        if (EX.counter == 0 && ID_EX.flag == false && ct == true)
             ;
     
     //If EX has completed its operation and the producer latch is ready with an instruction, pull in
