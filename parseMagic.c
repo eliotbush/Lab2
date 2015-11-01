@@ -1,12 +1,9 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
-
 #define REG_NUM 32
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +61,7 @@ struct latch IF, IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB;
 //converts a instruction in the form of tokens into a struct
 struct inst convertInstruction(char **instr){
     struct inst output;
-
+    
     //convert opcode field
     if (strncmp(instr[0], "add", 10)==0){output.opcode = ADD;}
     else if (strncmp(instr[0], "sub", 10)==0){output.opcode = SUB;}
@@ -73,11 +70,11 @@ struct inst convertInstruction(char **instr){
     else if (strncmp(instr[0], "lw", 10)==0){output.opcode = LW;}
     else if (strncmp(instr[0], "sw", 10)==0){output.opcode = SW;}
     else if (strncmp(instr[0], "beq", 10)==0){output.opcode = BEQ;}
-
+    
     //convert rs and rt
     char delimiters[] = "$\n";
     char *regStr;
-
+    
     //addi or beq
     if ((strncmp(instr[0], "addi", 10)==0) || (strncmp(instr[0], "beq", 10)==0)) {
         regStr = strtok(translateRegister(instr[2]), delimiters);
@@ -87,7 +84,7 @@ struct inst convertInstruction(char **instr){
         regStr = strtok(instr[3], delimiters);
         sscanf(regStr, "%i", &output.immediate);
     }
-
+    
     //lw or sw
     else if((strncmp(instr[0], "lw", 10)==0) || (strncmp(instr[0], "sw", 10)==0)) {
         char delimiters2[] = "()";
@@ -100,7 +97,7 @@ struct inst convertInstruction(char **instr){
         regStr = strtok(regStr, delimiters);
         sscanf(regStr, "%i", &output.rs);
     }
-
+    
     //rd
     else {
         regStr = strtok(translateRegister(instr[1]), delimiters);
@@ -123,7 +120,7 @@ bool verifyInstruction(char **instr){
         //verify arg count
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for add\n");
-            return false;
+                return false;
         }
         //call other functions to translate/verify registers
         //if they all check out, return true (nested AND).
@@ -135,7 +132,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "sub", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for sub\n");
-            return false;
+                return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
     }
@@ -145,7 +142,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "addi", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for addi\n");
-            return false;
+                return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));}
     }
@@ -154,7 +151,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "mul", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for mul\n");
-            return false;
+                return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
     }
@@ -163,7 +160,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "lw", 10)==0){
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for lw\n");
-            return false;
+                return false;
         }
         //here verifyAddress is used
         else{return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));}
@@ -173,7 +170,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "sw", 10)==0){
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for sw\n");
-            return false;
+                return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));}
     }
@@ -182,7 +179,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "beq", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for beq\n");
-            return false;
+                return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyAddress(instr[3]));}
     }
@@ -389,63 +386,63 @@ char* translateRegister(char *Reg){
 //verify that an address is valid
 //returns bool for conditionals
 bool verifyAddress(char *Addr){
-bool isValid;
-char * offset;
-char * reg;
-int i;
-int j;
-int k = 0;
-int y;
-
-//First tests are to make sure that the address is valid from the start
-
-if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
-    return false;
-}
-
-
-if(Addr[(strlen(Addr)-1)]!=')'){
-    return false;
-}
-
-//After passing the initial tests the for loop iterates through the string from the last index to the first
-
-for(i = strlen(Addr)-1; i>-1;i--){
-	//During the backwards traversal it checks for the register's signature ($)
-	
+    bool isValid;
+    char * offset;
+    char * reg;
+    int i;
+    int j;
+    int k = 0;
+    int y;
+    
+    //First tests are to make sure that the address is valid from the start
+    
+    if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
+        return false;
+    }
+    
+    
+    if(Addr[(strlen(Addr)-1)]!=')'){
+        return false;
+    }
+    
+    //After passing the initial tests the for loop iterates through the string from the last index to the first
+    
+    for(i = strlen(Addr)-1; i>-1;i--){
+        //During the backwards traversal it checks for the register's signature ($)
+        
         if(Addr[i] == '$'){
-        	//if and when this symbol is found then store the register into a character pointer using a for loop.
+            //if and when this symbol is found then store the register into a character pointer using a for loop.
             reg = (char *) malloc(10*sizeof(char));
             for(j=i; j<strlen(Addr)-1; j++){
                 reg[k]=Addr[i+k];
                 k++;//this is included because the reference to the new character pointer must be from index zero
                 //this iterates through in the middle of the loop and keeps the indices lined up
             }
-        
+            
         }
         
         
         
         if(Addr[i] == '('){
-        	//if and when the open paren is found store all the characters up to the open paran
-        	//into a character pointer reserved for the offset value
-        	
+            //if and when the open paren is found store all the characters up to the open paran
+            //into a character pointer reserved for the offset value
+            
             offset = (char *) malloc(10*sizeof(char));
             for(j=0; j<i;j++){
                 offset[j]=Addr[j];
             }
         }
-
-
-}
-//the character pointers can now be input into their respective test functions
-//there is however a need to translate the reg pointer before a call to verifyRegister is made
-
-if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
-    return true;
+        
+        
+    }
+    //the character pointers can now be input into their respective test functions
+    //there is however a need to translate the reg pointer before a call to verifyRegister is made
     
-}
-return false;    
+    if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
+        return true;
+        
+    }
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -460,7 +457,7 @@ bool verifyImmediate(char *imm){
     bool isNeg = false;
     bool isNumber = true;
     bool isBit = false;
-   
+    
     //preliminary stage: is it a number?
     for (i=0; i<strlen(imm); i++){
         if((imm[i] - '0')>9 || imm[i]- '0'<0){
@@ -515,5 +512,5 @@ bool verifyImmediate(char *imm){
     return (isNumber&&isBit);
 }
 int main(int argc, const char * argv[]) {
-return 0;
+    return 0;
 }
