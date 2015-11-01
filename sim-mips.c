@@ -97,7 +97,7 @@ int main(int argc, const char * argv[]) {
         char **instructionString;
         instructionString = (char **) malloc(10*sizeof(char*));
 	for(i=0; i<10; i++){
-            instructionString[i] = (char *) malloc(100*sizeof(char*));
+            instructionString[i] = (char *) malloc(100*sizeof(char));
             instructionString[i] = NULL;
         }
         i=0;
