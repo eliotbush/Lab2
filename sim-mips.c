@@ -115,9 +115,9 @@ int main(int argc, const char * argv[]) {
 
     initializeLatches();
 
-    printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode);
-    printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode);
-    printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode);
+    printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+    printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
+    printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
     printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
     printf("(EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX.flag, EX.operandOne, EX.operandTwo, EX.destRegister, EX.counter, EX.opcode, EX.instruction.opcode);
     printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
@@ -130,9 +130,9 @@ int main(int argc, const char * argv[]) {
         EX_stage();
         ID_stage();
         IF_stage();
-        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode);
-        printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode);
-        printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode);
+        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+        printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
+        printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
         printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
         printf("(EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX.flag, EX.operandOne, EX.operandTwo, EX.destRegister, EX.counter, EX.opcode, EX.instruction.opcode);
         printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
@@ -146,6 +146,11 @@ int main(int argc, const char * argv[]) {
 	if(sim_mode==1){
 		for (i=1;i<REG_NUM;i++){
 			printf("%d  ",mips_reg[i]);
+		}
+                printf("%d\n",pgm_c);
+	        printf("cycle: %d ",sim_cycle);
+		for (i=1;i<REG_NUM;i++){
+			printf("%d  ",registerFlags[i]);
 		}
 	}
 	printf("%d\n",pgm_c);
@@ -178,9 +183,9 @@ struct inst convertInstruction(char **instr){
 
     //addi or beq
     if ((strncmp(instr[0], "addi", 10)==0) || (strncmp(instr[0], "beq", 10)==0)) {
-        regStr = strtok(translateRegister(instr[1]), delimiters);
-        sscanf(regStr, "%i", &output.rs);
         regStr = strtok(translateRegister(instr[2]), delimiters);
+        sscanf(regStr, "%i", &output.rs);
+        regStr = strtok(translateRegister(instr[1]), delimiters);
         sscanf(regStr, "%i", &output.rt);
         regStr = strtok(instr[3], delimiters);
         sscanf(regStr, "%i", &output.immediate);
@@ -190,13 +195,13 @@ struct inst convertInstruction(char **instr){
     else if((strncmp(instr[0], "lw", 10)==0) || (strncmp(instr[0], "sw", 10)==0)) {
         char delimiters2[] = "()";
         regStr = strtok(translateRegister(instr[1]), delimiters);
-        sscanf(regStr, "%i", &output.rs);
+        sscanf(regStr, "%i", &output.rt);
         regStr = strtok(instr[2], delimiters2);
         sscanf(regStr, "%i", &output.immediate);
         regStr = strtok(NULL, delimiters2);
         regStr = translateRegister(regStr);
         regStr = strtok(regStr, delimiters);
-        sscanf(regStr, "%i", &output.rt);
+        sscanf(regStr, "%i", &output.rs);
     }
 
     //rd
@@ -714,7 +719,7 @@ void ID_stage(void){
                 if(ID_EX.flag){ID.flag=false;}
                 else{ID_EX = ID;}
             }
-            else{ID.flag == false;}
+            else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==ADDI){
             if (registerFlags[ID.instruction.rs]){
@@ -726,7 +731,7 @@ void ID_stage(void){
                 if(ID_EX.flag){ID.flag=false;}
                 else{ID_EX = ID;}
             }
-            else{ID.flag == false;}
+            else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==BEQ){
             if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
@@ -737,7 +742,7 @@ void ID_stage(void){
                 if(ID_EX.flag){ID.flag=false;}
                 else{ID_EX = ID;}
             }
-            else{ID.flag == false;}
+            else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
             if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
@@ -752,7 +757,7 @@ void ID_stage(void){
                 if(ID_EX.flag){ID.flag=false;}
                 else{ID_EX = ID;}
             }
-            else{ID.flag == false;}
+            else{ID.flag = false;}
         }
 	else if (ID.instruction.opcode==HALT){
             ID.opcode = HALT;
@@ -765,7 +770,7 @@ void ID_stage(void){
 
     else if(ID.flag==false){
         if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+            if (registerFlags[ID.instruction.rs]==true && registerFlags[ID.instruction.rt]==true){
                 ID.flag = true;
                 ID.operandOne = mips_reg[ID.instruction.rs];
                 ID.operandTwo = mips_reg[ID.instruction.rt];
@@ -999,4 +1004,5 @@ void initializeLatches(void){
     ID_EX.flag = false;
     EX_MEM.flag = false;
     MEM_WB.flag = false;
+//IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB
 }
