@@ -577,70 +577,62 @@ char* translateRegister(char *Reg){
 //verify that an address is valid
 //returns bool for conditionals
 bool verifyAddress(char *addr){
+    //strip off line break
     char *delimiter;
     delimiter = "\n";
     char *copy = strdup(addr);
     char *Addr;
     Addr = strtok(copy, delimiter);
 
+    bool isValid;
+    char * offset;
+    char * reg;
+    int i;
+    int j;
+    int k = 0;
+    int y;
 
-bool isValid;
-char * offset;
-char * reg;
-int i;
-int j;
-int k = 0;
-int y;
-
-//First tests are to make sure that the address is valid from the start
-
-if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
-    return false;
-}
+    //First tests are to make sure that the address is valid from the start
+    if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
+        printf("Bad address: %s\n", Addr);
+        return false;
+    }
 
 
-if(Addr[(strlen(Addr)-1)]!=')'){
-    return false;
-}
+    if(Addr[(strlen(Addr)-1)]!=')'){
+        printf("Bad address: %s\n", Addr);
+        return false;
+    }
 
-//After passing the initial tests the for loop iterates through the string from the last index to the first
-
-for(i = strlen(Addr)-1; i>-1;i--){
+    //After passing the initial tests the for loop iterates through the string from the last index to the first
+    for(i = strlen(Addr)-1; i>-1;i--){
 	//During the backwards traversal it checks for the register's signature ($)
-	
         if(Addr[i] == '$'){
-        	//if and when this symbol is found then store the register into a character pointer using a for loop.
+            //if and when this symbol is found then store the register into a character pointer using a for loop.
             reg = (char *) malloc(10*sizeof(char));
             for(j=i; j<strlen(Addr)-1; j++){
                 reg[k]=Addr[i+k];
                 k++;//this is included because the reference to the new character pointer must be from index zero
                 //this iterates through in the middle of the loop and keeps the indices lined up
             }
-        
         }
-        
-        
-        
         if(Addr[i] == '('){
-        	//if and when the open paren is found store all the characters up to the open paran
-        	//into a character pointer reserved for the offset value
-        	
+            //if and when the open paren is found store all the characters up to the open paran
+            //into a character pointer reserved for the offset value
             offset = (char *) malloc(10*sizeof(char));
             for(j=0; j<i;j++){
                 offset[j]=Addr[j];
             }
         }
+    }
 
-
-}
-//the character pointers can now be input into their respective test functions
-//there is however a need to translate the reg pointer before a call to verifyRegister is made
-
-if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
-    return true;
-    
-}
-return false;    
+    //the character pointers can now be input into their respective test functions
+    //there is however a need to translate the reg pointer before a call to verifyRegister is made
+    if(verifyRegister(translateRegister(reg)) && verifyImmediate(offset)){
+        return true;
+    }
+    printf("Bad address: %s\n", Addr);
+    return false;    
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -648,6 +640,7 @@ return false;
 //need instructor clarification on this. should it just be a number?
 //test print statements are commented out
 bool verifyImmediate(char *Imm){
+    //strip line break from end
     char *delimiter;
     delimiter = "\n";
     char *copy = strdup(Imm);
