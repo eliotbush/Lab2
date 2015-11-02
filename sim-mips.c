@@ -948,12 +948,12 @@ void ID_stage(void){
             else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+            if (registerFlags[ID.instruction.rs]){
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
                 if(ID.instruction.opcode==SW){
                     ID.destRegister = mips_reg[ID.instruction.rt];}
-                else{
+                else if (registerFlags[ID.instruction.rt]) {
                     ID.destRegister = ID.instruction.rt;
                     registerFlags[ID.instruction.rt] = false;
                 }
@@ -978,13 +978,13 @@ void ID_stage(void){
     else if(ID.flag==false){
         if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
             if (registerFlags[ID.instruction.rs]==true && registerFlags[ID.instruction.rt]==true){
-                ID.flag = true;
                 ID.operandOne = mips_reg[ID.instruction.rs];
                 ID.operandTwo = mips_reg[ID.instruction.rt];
                 registerFlags[ID.instruction.rd];
                 ID.destRegister = ID.instruction.rd;
                 ID.opcode = ID.instruction.opcode;
                 if(ID_EX.flag==false){
+                    ID.flag = true; 
                     ID_EX = ID;
                     ID_util++;
                 }
@@ -992,13 +992,13 @@ void ID_stage(void){
         }
         else if (ID.instruction.opcode==ADDI){
             if (registerFlags[ID.instruction.rs]){
-                ID.flag = true;
                 ID.operandOne = mips_reg[ID.instruction.rs];
                 ID.operandTwo = ID.instruction.immediate;
                 ID.destRegister = ID.instruction.rt;
                 registerFlags[ID.instruction.rt] = false;
                 ID.opcode = ID.instruction.opcode;
                 if(ID_EX.flag==false){
+                    ID.flag = true;
                     ID_EX = ID;
                     ID_util++;
                 }
@@ -1006,36 +1006,36 @@ void ID_stage(void){
         }
         else if (ID.instruction.opcode==BEQ){
             if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
-                ID.flag = true;
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
                 ID.destRegister = mips_reg[ID.instruction.rt];
                 ID.opcode = ID.instruction.opcode;
                 if(ID_EX.flag==false){
+                    ID.flag = true;
                     ID_EX = ID;
                     ID_util++;
                 }
             }
         }
         else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
-                ID.flag = true;
+            if (registerFlags[ID.instruction.rs]){
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
                 if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
-                else{
+                else if (registerFlags[ID.instruction.rt]){
                     ID.destRegister = ID.instruction.rt;
                     registerFlags[ID.instruction.rt] = false;
                 }
                 ID.opcode = ID.instruction.opcode;
                 if(ID_EX.flag==false){
+                    ID.flag = true;
                     ID_EX = ID;
                     ID_util++;
                 }
             }
         }
 	else if (ID.instruction.opcode==HALT){
-            if(ID_EX.flag){
+            if(ID_EX.flag==false){
                 ID.flag=true;
                 ID_EX = ID;
             }
