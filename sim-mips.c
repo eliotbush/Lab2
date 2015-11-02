@@ -84,6 +84,7 @@ bool *registerFlags;
 struct inst *instructionMemory;
 //pipeline latches and internal stage latches
 struct latch IF, IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB;
+FILE *output=NULL;
     
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +96,6 @@ main (int argc, char *argv[]){
     int i;//for loop counter	
     int test_counter=0;
     FILE *input=NULL;
-    FILE *output=NULL;
     printf("The arguments are:");
 	
     for(i=1;i<argc;i++){
@@ -163,17 +163,17 @@ main (int argc, char *argv[]){
             token = strtok(NULL, delimiters);
             i++;
         }
-        printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
+        //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
         //assert(verifyInstruction(instructionString));
         instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
-    for (i=0; i<j; i++){printf("%d %d %d %d %d\n\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
-    printf("true: %d\n\n", true);
+    //for (i=0; i<j; i++){printf("%d %d %d %d %d\n\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
+    //printf("true: %d\n\n", true);
 
     initializeLatches();
 
-    printf("(IF) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+/*    printf("(IF) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
     printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
     printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
     printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
@@ -182,13 +182,15 @@ main (int argc, char *argv[]){
     printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
     printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
     printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
-    while(isRunning){
+*/
+    //single cycle
+    while(isRunning && (sim_mode==1)){
         WB_stage();
         MEM_stage();
         EX_stage();
         ID_stage();
         IF_stage();
-        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+/*        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
         printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
         printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
         printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
@@ -197,6 +199,7 @@ main (int argc, char *argv[]){
         printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
         printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
         printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
+*/
 	//output code 2: the following code will output the register 
         //value to screen at every cycle and wait for the ENTER key
         //to be pressed; this will make it proceed to the next cycle 
@@ -206,20 +209,52 @@ main (int argc, char *argv[]){
 			printf("%d  ",mips_reg[i]);
 		}
                 printf("%d\n",pgm_c);
-	        printf("cycle: %d ",sim_cycle);
-		for (i=1;i<REG_NUM;i++){
-			printf("%d  ",registerFlags[i]);
-		}
 	}
-	printf("%d\n",pgm_c);
 	sim_cycle+=1;
 	printf("press ENTER to continue\n");
 	while(getchar() != '\n');
     }
 
+    //batch mode
+    while(isRunning && sim_mode==0){
+        WB_stage();
+        MEM_stage();
+        EX_stage();
+        ID_stage();
+        IF_stage();
+        sim_cycle++;
+    }
+
+    double IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent;
+    IF_percent = 100*((double)IF_util/(double)sim_cycle);
+    ID_percent = 100*((double)ID_util/(double)sim_cycle);
+    EX_percent = 100*((double)EX_util/(double)sim_cycle);
+    MEM_percent = 100*((double)MEM_util/(double)sim_cycle);
+    WB_percent = 100*((double)WB_util/(double)sim_cycle);
+
+    if(sim_mode==1){printf("stage utilization: %d %d %d %d %d \n", IF_util, ID_util, EX_util, MEM_util, WB_util);}
+    if(sim_mode==1){printf("utilization percentages: %f %f %f %f %f \n", IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent);}
+    if(sim_mode==1){printf("execution time: %d", sim_cycle);}
+
+    //add the following code to the end of the simulation, 
+    //to output statistics in batch mode
+    if(sim_mode==0){
+	fprintf(output,"program name: %s\n",argv[5]);
+	fprintf(output,"stage utilization: %d  %d  %d  %d  %d \n", IF_util, IF_util, EX_util, MEM_util, WB_util);
+        fprintf(output,"utilization percentages: %f %f %f %f %f \n", IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent);
+		
+	fprintf(output,"register values ");
+	for (i=1;i<REG_NUM;i++){
+	    fprintf(output,"%d  ",mips_reg[i]);
+	}
+	fprintf(output,"%d\n",pgm_c);
+        fprintf(output, "execution time: %d", sim_cycle);
+    }
+    //close input and output files at the end of the simulation
+    fclose(input);
+    fclose(output);
     return 0;
 }
-
 
 
 
@@ -289,9 +324,7 @@ struct inst convertInstruction(char **instr){
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rs);
         copy = strdup(translateRegister(instr[3]));
-        printf("%s\n", copy);
         regStr = strtok(copy, delimiters);
-        printf("%s\n", regStr);
         sscanf(regStr, "%i", &output.rt);
     }
 
@@ -315,6 +348,7 @@ bool verifyInstruction(char **instr){
         //verify arg count
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for add\n");
+            fprintf(output, "bad arg count for add\n");
             return false;
         }
         //call other functions to translate/verify registers
@@ -327,6 +361,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "sub", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for sub\n");
+            fprintf(output, "bad arg count for sub\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
@@ -337,6 +372,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "addi", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for addi\n");
+            fprintf(output, "bad arg count for addi\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));}
@@ -346,6 +382,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "mul", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for mul\n");
+            fprintf(output, "bad arg count for mul\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
@@ -355,6 +392,8 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "lw", 10)==0){
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for lw\n");
+            fprintf(output, "bad arg count for lw\n");
+            fprintf(output, "bad arg count for lw\n");
             return false;
         }
         //here verifyAddress is used
@@ -365,6 +404,8 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "sw", 10)==0){
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for sw\n");
+            fprintf(output, "bad arg count for sw\n");
+            fprintf(output, "bad arg count for sw\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));}
@@ -374,6 +415,8 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "beq", 10)==0){
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for beq\n");
+            fprintf(output, "bad arg count for beq\n");
+            fprintf(output, "bad arg count for beq\n");
             return false;
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyAddress(instr[3]));}
@@ -383,6 +426,7 @@ bool verifyInstruction(char **instr){
     else if(strncmp(instr[0], "haltSimulation", 100)==0){
         if(instr[2]!=NULL){
             printf("bad arg count for haltSimulation\n");
+            fprintf(output, "bad arg count for haltSimulation\n");
             return false;
         }
         else{return true;}
@@ -414,6 +458,7 @@ bool verifyRegister(char *Reg){
             if((reg[2]-'0')>=0 && (reg[2]-'0')<=9){return true;}
             else{
                 printf("bad register declaration: %s\n", reg);
+                fprintf(output, "bad register declaration: %s\n", reg);
                 return false;
             }
         }
@@ -424,6 +469,7 @@ bool verifyRegister(char *Reg){
             if((reg[2]-'0')>=0 && (reg[2]-'0')<=9){return true;}
             else{
                 printf("bad register declaration: %s\n", reg);
+                fprintf(output, "bad register declaration: %s\n", reg);
                 return false;
             }
         }
@@ -434,18 +480,21 @@ bool verifyRegister(char *Reg){
             if((reg[2]-'0')>=0 && (reg[2]-'0')<=1){return true;}
             else{
                 printf("bad register declaration: %s\n", reg);
+                fprintf(output, "bad register declaration: %s\n", reg);
                 return false;
             }
         }
         
         else{
             printf("bad register declaration: %s\n", reg);
+            fprintf(output, "bad register declaration: %s\n", reg);
             return false;
         }
     }
     
     else{
         printf("bad register declaration: %s\n", reg);
+        fprintf(output, "bad register declaration: %s\n", reg);
         return false;
     }
 }
@@ -609,12 +658,14 @@ bool verifyAddress(char *addr){
     //First tests are to make sure that the address is valid from the start
     if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
         printf("Bad address: %s\n", Addr);
+        fprintf(output, "Bad address: %s\n", Addr);
         return false;
     }
 
 
     if(Addr[(strlen(Addr)-1)]!=')'){
         printf("Bad address: %s\n", Addr);
+        fprintf(output, "Bad address: %s\n", Addr);
         return false;
     }
 
@@ -646,6 +697,7 @@ bool verifyAddress(char *addr){
         return true;
     }
     printf("Bad address: %s\n", Addr);
+    fprintf(output, "Bad address: %s\n", Addr);
     return false;    
 }
 
@@ -749,6 +801,7 @@ void MEM_stage(void){
                 //if the address is bad, stop execution
                 if ((MEM.operandOne<0)||(MEM.operandOne>2048)||(MEM.operandOne % 4 != 0)){
                     printf("Invalid address: %d\n", MEM.operandOne);
+                    fprintf(output, "Invalid address: %d\n", MEM.operandOne);
                     assert((MEM.operandOne>=0)&&(MEM.operandOne<=2048)&&(MEM.operandOne % 4 == 0));
                 }
             }
@@ -1154,4 +1207,5 @@ void initializeLatches(void){
     ID_EX.flag = false;
     EX_MEM.flag = false;
     MEM_WB.flag = false;
+//IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB
 }
