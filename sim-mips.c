@@ -172,6 +172,7 @@ int main(int argc, const char * argv[]) {
 //converts a instruction in the form of tokens into a struct
 struct inst convertInstruction(char **instr){
     struct inst output;
+    char *copy;
 
     //convert opcode field
     if (strncmp(instr[0], "add", 10)==0){output.opcode = ADD;}
@@ -188,20 +189,25 @@ struct inst convertInstruction(char **instr){
 
     //addi or beq
     if ((strncmp(instr[0], "addi", 10)==0) || (strncmp(instr[0], "beq", 10)==0)) {
-        regStr = strtok(translateRegister(instr[2]), delimiters);
+        copy = strdup(translateRegister(instr[2]));
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rs);
-        regStr = strtok(translateRegister(instr[1]), delimiters);
+        copy = strdup(translateRegister(instr[1]));
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
-        regStr = strtok(instr[3], delimiters);
+        copy = strdup(instr[3]);
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.immediate);
     }
 
     //lw or sw
     else if((strncmp(instr[0], "lw", 10)==0) || (strncmp(instr[0], "sw", 10)==0)) {
         char delimiters2[] = "()";
-        regStr = strtok(translateRegister(instr[1]), delimiters);
+        copy = strdup(translateRegister(instr[1]));
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
-        regStr = strtok(instr[2], delimiters2);
+        copy = strdup(instr[2]);
+        regStr = strtok(copy, delimiters2);
         sscanf(regStr, "%i", &output.immediate);
         regStr = strtok(NULL, delimiters2);
         regStr = translateRegister(regStr);
@@ -211,11 +217,14 @@ struct inst convertInstruction(char **instr){
 
     //rd
     else {
-        regStr = strtok(translateRegister(instr[1]), delimiters);
+        copy = strdup(translateRegister(instr[1]));
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rd);
-        regStr = strtok(translateRegister(instr[2]), delimiters);
+        copy = strdup(translateRegister(instr[2]));
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rs);
-        regStr = strtok(translateRegister(instr[3]), delimiters);
+        copy = strdup(translateRegister(instr[3]));
+        regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
     }
     return output;
