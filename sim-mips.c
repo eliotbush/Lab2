@@ -251,6 +251,12 @@ main (int argc, char *argv[]){
         fprintf(output, "execution time: %d", sim_cycle);
     }
     //close input and output files at the end of the simulation
+    free(mips_reg);
+    free(registerFlags);
+    free(dataMemory);
+    free(instructionMemory);
+    free(line);
+    free(token);
     fclose(input);
     fclose(output);
     return 0;
