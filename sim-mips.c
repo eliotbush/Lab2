@@ -1,37 +1,22 @@
-/*
+// Author: Shikang Xu; ECE 353 TA
 
-	long pgm_c=0;//program counter
-	long sim_cycle=0;//simulation cycle counter
-	//define your own counter for the usage of each pipeline stage here
-	
-	int test_counter=0;
-	
-	
-	
-	else{
-		printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
-		printf("m,n,c stand for number of cycles needed by multiplication, other operation, and memory access, respectively\n");
-		exit(0);
-
-*/
-
+// Emma Bryce - Eliot Bush - Ygor Jean
+// ECE 353 Lab 2
+// 11/2/2015
 //
-//  main.c
-//  Lab2
-//
-//  Created by Emma Bryce on 10/17/15.
-//  Copyright © 2015 Emma Bryce. All rights reserved.
-//
+// sim-mips.c
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <string.h>
 #include <stdbool.h>
-#define REG_NUM 32
+
 #define SINGLE 1
 #define BATCH 0
+#define REG_NUM 32
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,11 +72,11 @@ bool branchFlag=false;
 //flag which determines whether the simulation should continue to run or not.
 //set to false once a halt instruction hits WB (meaning that the pipeline is emptied)
 bool isRunning=true;
-int pgm_c=0;
+long pgm_c=0;
 int m,n,c;
-int sim_cycle;
+long sim_cycle=0;
 //utilization for each stage
-int IF_util, ID_util, EX_util, MEM_util, WB_util = 0;
+long IF_util, ID_util, EX_util, MEM_util, WB_util = 0;
 int *dataMemory;
 int *mips_reg;
 //flags for whether each register is ready to be read from or not
@@ -99,88 +84,72 @@ bool *registerFlags;
 struct inst *instructionMemory;
 //pipeline latches and internal stage latches
 struct latch IF, IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB;
+    
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int main(int argc, const char * argv[]) {
-    int i;
+//we put a few of the variables outside the scope of main, so the code is slightly different.
+main (int argc, char *argv[]){
+    int sim_mode=0;//mode flag, 1 for single-cycle, 0 for batch
+    int i;//for loop counter	
+    int test_counter=0;
+    FILE *input=NULL;
+    FILE *output=NULL;
+    printf("The arguments are:");
+	
+    for(i=1;i<argc;i++){
+	printf("%s ",argv[i]);
+    }
+    printf("\n");
+    if(argc==7){
+	if(strcmp("-s",argv[1])==0){sim_mode=SINGLE;}
+	else if(strcmp("-b",argv[1])==0){sim_mode=BATCH;}
+	else{
+            printf("Wrong sim mode chosen\n");
+	    exit(0);
+	}
+		
+	m=atoi(argv[2]);
+	n=atoi(argv[3]);
+	c=atoi(argv[4]);
+	input=fopen(argv[5],"rt");
+	output=fopen(argv[6],"w");	
+    }
+	
+    else{
+	printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
+	printf("m,n,c stand for number of cycles needed by multiplication, other operation, and memory access, respectively\n");
+	exit(0);
+    }
+    if(input==NULL){
+	printf("Unable to open input or output file\n");
+	exit(0);
+    }
+   if(output==NULL){
+	printf("Cannot create output file\n");
+	exit(0);
+    }
+
+    //our code starts here
     int j;
-    int sim_mode=1;
-    m=2;//DELETE
-    n=3;//DELETE
-    c=3;//DELETE
-    mips_reg = (int *) malloc(32*sizeof(int));//DELETE
-    for(i=0; i<32; i++){mips_reg[i] = 0;}//DELETE
-    registerFlags = (bool *) malloc(32*sizeof(bool));//DELETE
-    for(i=0; i<32; i++){registerFlags[i] = true;}//DELETE
+    mips_reg = (int *) malloc(32*sizeof(int));
+    for(i=0; i<32; i++){mips_reg[i] = 0;}
+    registerFlags = (bool *) malloc(32*sizeof(bool));
+    for(i=0; i<32; i++){registerFlags[i] = true;}
     dataMemory = (int *) malloc(512*sizeof(int));
     for(i=0; i<512; i++){dataMemory[i] = 0;}
-    
-    
-/*    
 
-FILE *assembly_program = NULL;
-FILE *output = NULL;
-
-printf("The arguments are:");
-	
-	for(i=1;i<argc;i++){
-		printf("%s ",argv[i]);
-	}
-	
-	printf("\n");
-	
-    
-    if(argc==7){
-		if(strcmp("-s",argv[1])==0){
-			sim_mode=SINGLE;
-		}
-		else if(strcmp("-b",argv[1])==0){
-			sim_mode=BATCH;
-		}
-		else{
-			printf("Wrong sim mode chosen\n");
-			exit(0);
-		}
-		
-		m=atoi(argv[2]);
-		n=atoi(argv[3]);
-		c=atoi(argv[4]);
-		assembly_program=fopen(argv[5],"r");
-		output=fopen(argv[6],"w");
-		
-	}
-	if(assembly_program==NULL){
-		printf("Unable to open input or output file\n");
-		exit(0);
-	}
-	if(output==NULL){
-		printf("Cannot create output file\n");
-		exit(0);
-	}
-	
-	//initialize registers and program counter
-	if(sim_mode==1){
-	mips_reg = (int *) malloc(32*sizeof(int));
-	registerFlags = (bool *) malloc(32*sizeof(bool))
-		for (i=0;i<REG_NUM;i++){
-			mips_reg[i]=0;
-			registerFlags[i] = true; 
-		}
-	}
-*/
     instructionMemory = (struct inst *) malloc(512*sizeof(struct inst));
     for(i=0; i<512; i++){instructionMemory[i].opcode = HALT;}
     char *line;
     line = (char *) malloc(100*sizeof(char));
     char delimiters[] = ", ";
-
-    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");//DELETE
     
     j=0;
     char *token;
     token = (char * ) malloc(100*sizeof(char));
-    while (fgets(line, 100, assembly_program) != NULL){
+    while (fgets(line, 100, input) != NULL){
         char **instructionString;
         instructionString = (char **) malloc(10*sizeof(char*));
 	for(i=0; i<10; i++){
@@ -194,8 +163,8 @@ printf("The arguments are:");
             token = strtok(NULL, delimiters);
             i++;
         }
-        //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
-        assert(verifyInstruction(instructionString));
+        printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
+        //assert(verifyInstruction(instructionString));
         instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
@@ -206,12 +175,12 @@ printf("The arguments are:");
 
     printf("(IF) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
     printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
-    printf("(ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
-    printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
+    printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
+    printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
     printf("(EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX.flag, EX.operandOne, EX.operandTwo, EX.destRegister, EX.counter, EX.opcode, EX.instruction.opcode);
-    printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
+    printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
     printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
-    printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
+    printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
     printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
     while(isRunning){
         WB_stage();
@@ -219,14 +188,14 @@ printf("The arguments are:");
         EX_stage();
         ID_stage();
         IF_stage();
-        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
         printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
-        printf("(ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
-        printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
+        printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
+        printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
         printf("(EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX.flag, EX.operandOne, EX.operandTwo, EX.destRegister, EX.counter, EX.opcode, EX.instruction.opcode);
-        printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
+        printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
         printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
-        printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
+        printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
         printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
 	//output code 2: the following code will output the register 
         //value to screen at every cycle and wait for the ENTER key
@@ -248,7 +217,7 @@ printf("The arguments are:");
 	while(getchar() != '\n');
     }
 
-	return 0;
+    return 0;
 }
 
 
@@ -258,10 +227,10 @@ printf("The arguments are:");
 
 //converts a instruction in the form of tokens into a struct
 struct inst convertInstruction(char **instr){
-    //this will be the output
-    struct inst output;
     //dummy string
     char *copy;
+    //this will be the output
+    struct inst output;
 
     //convert opcode field
     if (strncmp(instr[0], "add", 10)==0){output.opcode = ADD;}
@@ -320,7 +289,9 @@ struct inst convertInstruction(char **instr){
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rs);
         copy = strdup(translateRegister(instr[3]));
+        printf("%s\n", copy);
         regStr = strtok(copy, delimiters);
+        printf("%s\n", regStr);
         sscanf(regStr, "%i", &output.rt);
     }
 
@@ -407,6 +378,15 @@ bool verifyInstruction(char **instr){
         }
         else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyAddress(instr[3]));}
     }
+
+    //halt
+    else if(strncmp(instr[0], "haltSimulation", 100)==0){
+        if(instr[2]!=NULL){
+            printf("bad arg count for haltSimulation\n");
+            return false;
+        }
+        else{return true;}
+    }
     
     //didn't find valid opcode!
     else{
@@ -419,10 +399,10 @@ bool verifyInstruction(char **instr){
 
 //verify a NUMERICAL valued register.
 bool verifyRegister(char *Reg){
-    char *c;
-    c = "\n";
+    char *delimiter;
+    delimiter = "\n";
     char *reg;
-    reg = strtok(Reg, c);
+    reg = strtok(Reg, delimiter);
     if(reg[0]=='$'){
         //register $0-9
         //check if 0 <= reg[1] <= 9
@@ -476,10 +456,11 @@ bool verifyRegister(char *Reg){
 //for unrecognized symbols (either an illegal symbol or a numerical register) it returns the original input
 //so numeric registers just pass through, and invalid symbolic will trip the verifyRegister stage
 char* translateRegister(char *Reg){
-    char *c;
-    c = "\n";
+    char *delimiter;
+    delimiter = "\n";
+    char *copy = strdup(Reg);
     char *reg;
-    reg = strtok(Reg, c);
+    reg = strtok(copy, delimiter);
     
     //$zero
     if(strncmp(reg, "$zero", 10)==0){return "$0";}
@@ -673,7 +654,6 @@ bool verifyAddress(char *addr){
 //need instructor clarification on this. should it just be a number?
 //test print statements are commented out
 bool verifyImmediate(char *Imm){
-    //strip line break from end
     char *delimiter;
     delimiter = "\n";
     char *copy = strdup(Imm);
@@ -741,6 +721,9 @@ bool verifyImmediate(char *Imm){
     }
     return (isNumber&&isBit);
 }
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -1041,12 +1024,12 @@ void EX_stage(){
                 EX_MEM.opcode = EX.opcode;
                 EX_MEM.destRegister = EX.destRegister;
             }
-            if(EX.opcode == SUB){
+            else if(EX.opcode == SUB){
                 EX_MEM = EX;
                 EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
                 EX_MEM.flag = true;
             }
-            if(EX.opcode == BEQ){
+            else if(EX.opcode == BEQ){
                 if(EX.destRegister != EX.operandTwo)
                     branchFlag = false;
                 else{
@@ -1134,7 +1117,7 @@ void EX_stage(){
                         EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
                         EX_MEM.flag = true;
                     }
-                    if(EX.opcode == BEQ){
+                    else if(EX.opcode == BEQ){
                         if(EX.destRegister != EX.operandTwo)
                             branchFlag = false;
                         else{
@@ -1171,5 +1154,4 @@ void initializeLatches(void){
     ID_EX.flag = false;
     EX_MEM.flag = false;
     MEM_WB.flag = false;
-//IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB
 }
