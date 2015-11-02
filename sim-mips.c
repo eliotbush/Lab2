@@ -1,48 +1,12 @@
 /*
-#include <string.h>
-#include <math.h>
-#include <assert.h>
-//feel free to add here any additional library names you may need 
-#define SINGLE 1
-#define BATCH 0
-#define REG_NUM 32
 main (int argc, char *argv[]){
-	int sim_mode=0;//mode flag, 1 for single-cycle, 0 for batch
-	int c,m,n;
-	int i;//for loop counter
-	long mips_reg[REG_NUM];
 	long pgm_c=0;//program counter
 	long sim_cycle=0;//simulation cycle counter
 	//define your own counter for the usage of each pipeline stage here
 	
 	int test_counter=0;
-	FILE *input=NULL;
-	FILE *output=NULL;
-	printf("The arguments are:");
 	
-	for(i=1;i<argc;i++){
-		printf("%s ",argv[i]);
-	}
-	printf("\n");
-	if(argc==7){
-		if(strcmp("-s",argv[1])==0){
-			sim_mode=SINGLE;
-		}
-		else if(strcmp("-b",argv[1])==0){
-			sim_mode=BATCH;
-		}
-		else{
-			printf("Wrong sim mode chosen\n");
-			exit(0);
-		}
-		
-		m=atoi(argv[2]);
-		n=atoi(argv[3]);
-		c=atoi(argv[4]);
-		input=fopen(argv[5],"r");
-		output=fopen(argv[6],"w");
-		
-	}
+	
 	
 	else{
 		printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
@@ -83,6 +47,8 @@ main (int argc, char *argv[]){
 #include <string.h>
 #include <stdbool.h>
 #define REG_NUM 32
+#define SINGLE 1
+#define BATCH 0
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -141,23 +107,58 @@ int main(int argc, const char * argv[]) {
     int i;
     int j;
     int sim_mode=1;
-    m=2;
-    n=3;
-    c=3;
+    m=2;//DELETE
+    n=3;//DELETE
+    c=3;//DELETE
     mips_reg = (int *) malloc(32*sizeof(int));
     for(i=0; i<32; i++){mips_reg[i] = 0;}
     registerFlags = (bool *) malloc(32*sizeof(bool));
     for(i=0; i<32; i++){registerFlags[i] = true;}
     dataMemory = (int *) malloc(512*sizeof(int));
     for(i=0; i<512; i++){dataMemory[i] = 0;}
+    
+    
+/*    
 
+FILE *assembly_program = NULL;
+FILE *output = NULL;
+
+printf("The arguments are:");
+	
+	for(i=1;i<argc;i++){
+		printf("%s ",argv[i]);
+	}
+	
+	printf("\n");
+	
+    
+    if(argc==7){
+		if(strcmp("-s",argv[1])==0){
+			sim_mode=SINGLE;
+		}
+		else if(strcmp("-b",argv[1])==0){
+			sim_mode=BATCH;
+		}
+		else{
+			printf("Wrong sim mode chosen\n");
+			exit(0);
+		}
+		
+		m=atoi(argv[2]);
+		n=atoi(argv[3]);
+		c=atoi(argv[4]);
+		assembly_program=fopen(argv[5],"r");
+		output=fopen(argv[6],"w");
+		
+	}
+*/
     instructionMemory = (struct inst *) malloc(512*sizeof(struct inst));
     for(i=0; i<512; i++){instructionMemory[i].opcode = HALT;}
     char *line;
     line = (char *) malloc(100*sizeof(char));
     char delimiters[] = ", ";
 
-    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");
+    FILE *assembly_program = fopen("assemblyProgram.txt", "rt");//DELETE
     
     j=0;
     char *token;
@@ -982,12 +983,12 @@ void EX_stage(){
                 EX_MEM.opcode = EX.opcode;
                 EX_MEM.destRegister = EX.destRegister;
             }
-            else if(EX.opcode == SUB){
+            if(EX.opcode == SUB){
                 EX_MEM = EX;
                 EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
                 EX_MEM.flag = true;
             }
-            else if(EX.opcode == BEQ){
+            if(EX.opcode == BEQ){
                 if(EX.destRegister != EX.operandTwo)
                     branchFlag = false;
                 else{
@@ -1075,7 +1076,7 @@ void EX_stage(){
                         EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
                         EX_MEM.flag = true;
                     }
-                    else if(EX.opcode == BEQ){
+                    if(EX.opcode == BEQ){
                         if(EX.destRegister != EX.operandTwo)
                             branchFlag = false;
                         else{
@@ -1100,6 +1101,7 @@ void EX_stage(){
         }
     }
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void initializeLatches(void){
