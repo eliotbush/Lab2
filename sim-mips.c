@@ -815,21 +815,28 @@ void IF_stage(void){
     //if ID is ready for a new instruction and counter's 1
     else if ((IF.counter==1)&&(IF_ID.flag==false)) {
         IF_util++;
-        assert((pgm_c%4==0)&&(pgm_c>=0));
+        //make sure the program counter is within bounds
+        assert((pgm_c%4==0)&&(pgm_c>=0)&&(pgm_c<=2048));
+        //get the instruction pc points to
         IF.instruction = instructionMemory[pgm_c/4];
         IF.counter--;
+        //if it's a branch or halt, set the flag so IF stalls
         branchFlag =  ((IF.instruction.opcode==BEQ)||(IF.instruction.opcode==HALT));
+        //dump latch, flag IF_ID as fresh
         IF_ID = IF;
         IF_ID.flag = true;
+        //increment pc
         pgm_c = pgm_c+4;
     }
 
     //if IF is ready for a new instruction and there are no unresolved brnaches
     else if ((IF.counter==0)&&(branchFlag==false)){
         if(c>1){
+            //start the counter
             IF.counter=c-1;
             IF_util++;
         }
+        //if c=1 IF just finishes right away
 	else if (IF_ID.flag){
             IF_util++;
             assert((pgm_c>=0)&&(pgm_c%4==0));
