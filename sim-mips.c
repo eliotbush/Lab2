@@ -116,8 +116,6 @@ main (int argc, char *argv[]){
 	input=fopen(argv[5],"rt");
 	output=fopen(argv[6],"w");	
     }
-
-    assert(m>=1&&n>=1&&c>=1);
 	
     else{
 	printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
@@ -134,6 +132,7 @@ main (int argc, char *argv[]){
     }
 
     //our code starts here
+    assert(m>=1&&n>=1&&c>=1);
     int j;
     mips_reg = (int *) malloc(32*sizeof(int));
     registerFlags = (bool *) malloc(32*sizeof(bool));
@@ -174,16 +173,6 @@ main (int argc, char *argv[]){
 
     initializeLatches();
 
-/*    printf("(IF) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
-    printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
-    printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
-    printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
-    printf("(EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX.flag, EX.operandOne, EX.operandTwo, EX.destRegister, EX.counter, EX.opcode, EX.instruction.opcode);
-    printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
-    printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
-    printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
-    printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
-*/
     //single cycle
     while(isRunning && (sim_mode==1)){
         WB_stage();
@@ -191,16 +180,7 @@ main (int argc, char *argv[]){
         EX_stage();
         ID_stage();
         IF_stage();
-/*        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
-        printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
-        printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
-        printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
-        printf("(EX) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", EX.flag, EX.operandOne, EX.operandTwo, EX.destRegister, EX.counter, EX.opcode, EX.instruction.opcode);
-        printf("(EX_MEM) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", EX_MEM.flag, EX_MEM.operandOne, EX_MEM.operandTwo, EX_MEM.destRegister, EX_MEM.counter, EX_MEM.opcode, EX_MEM.instruction.opcode);
-        printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
-        printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
-        printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
-*/
+
 	//output code 2: the following code will output the register 
         //value to screen at every cycle and wait for the ENTER key
         //to be pressed; this will make it proceed to the next cycle 
@@ -239,9 +219,11 @@ main (int argc, char *argv[]){
 
     assert(sim_cycle>0 && IF_util<sim_cycle && ID_util<sim_cycle && EX_util<sim_cycle && MEM_util<sim_cycle && WB_util<sim_cycle);
 
-    if(sim_mode==1){printf("stage utilization: %d %d %d %d %d \n", IF_util, ID_util, EX_util, MEM_util, WB_util);}
-    if(sim_mode==1){printf("utilization percentages: %f %f %f %f %f \n", IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent);}
-    if(sim_mode==1){printf("execution time: %d", sim_cycle);}
+    if(sim_mode==1){
+        printf("stage utilization: %d %d %d %d %d \n", IF_util, ID_util, EX_util, MEM_util, WB_util);
+        printf("utilization percentages: %f %f %f %f %f \n", IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent);}
+        printf("execution time: %d", sim_cycle);
+    }
 
     //add the following code to the end of the simulation, 
     //to output statistics in batch mode
@@ -1223,4 +1205,5 @@ void initializeLatches(void){
     ID_EX.flag = false;
     EX_MEM.flag = false;
     MEM_WB.flag = false;
+//IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB
 }
