@@ -443,10 +443,12 @@ bool verifyInstruction(char **instr){
 
 //verify a NUMERICAL valued register.
 bool verifyRegister(char *Reg){
+    //strip the line break
     char *delimiter;
     delimiter = "\n";
+    char *copy = strdup(Reg);
     char *reg;
-    reg = strtok(Reg, delimiter);
+    reg = strtok(copy, delimiter);
     if(reg[0]=='$'){
         //register $0-9
         //check if 0 <= reg[1] <= 9
