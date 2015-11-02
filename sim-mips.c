@@ -852,20 +852,32 @@ void IF_stage(void){
 ///////////////////////////////////////////////////////////////////////////
 
 void ID_stage(void){
+    //if ID isn't stalling and there's fresh data in the latch
     if (ID.flag && IF_ID.flag){
+        //pull in latch contents
         ID = IF_ID;
+        //flag the IF_ID's contents as stale
         IF_ID.flag = false;
         ID_util++;
+        //each instruction puts data into different latch fields
+        //the basic process is the same for each instruction, so I didn't bother to comment them all out fully.
         if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
+            //if rs and rt aren't currently waiting to be written to
             if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+                //bring the values of rs and rt into the operand fields
                 ID.operandOne = mips_reg[ID.instruction.rs];
                 ID.operandTwo = mips_reg[ID.instruction.rt];
+                //flag rd as awaiting a write to prevent RAW hazards
                 registerFlags[ID.instruction.rd] = false;
+                //bring in rd and opcode fields
                 ID.destRegister = ID.instruction.rd;
                 ID.opcode = ID.instruction.opcode;
+                //if ID_EX is fresh, EX hasn't gotten to it yet, so ID needs to stall
                 if(ID_EX.flag){ID.flag=false;}
+                //otherwise write to the latch
                 else{ID_EX = ID;}
             }
+            //if rs and/or rt is awaiting a write, ID needs to stall
             else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==ADDI){
@@ -916,6 +928,9 @@ void ID_stage(void){
         
     }
 
+    //if ID stalled on the previous instruction (either waiting for EX or a hazard)
+    //the process is just to do the same thing as before, check if the registers/latch have been freed
+    //if they haven't stall again, if everything's free move forward
     else if(ID.flag==false){
         if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
             if (registerFlags[ID.instruction.rs]==true && registerFlags[ID.instruction.rt]==true){
@@ -1147,8 +1162,11 @@ void EX_stage(){
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+//set up the latches with the appropriate values for the beginning of simulation.
+//all the pipeline latches are set to stale so that none of the stages do anything until an instruction comes through. 
 void initializeLatches(void){
     IF_ID.flag = false;
+    //ID's flag is set to true just to make sure it doesn't stall
     ID.flag = true;
     ID_EX.flag = false;
     EX_MEM.flag = false;
