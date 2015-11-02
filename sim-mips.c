@@ -95,8 +95,8 @@ int main(int argc, const char * argv[]) {
     c=3;//DELETE
     mips_reg = (int *) malloc(32*sizeof(int));//DELETE
     for(i=0; i<32; i++){mips_reg[i] = 0;}//DELETE
-    registerFlags = (bool *) malloc(32*sizeof(bool));
-    for(i=0; i<32; i++){registerFlags[i] = true;}
+    registerFlags = (bool *) malloc(32*sizeof(bool));//DELETE
+    for(i=0; i<32; i++){registerFlags[i] = true;}//DELETE
     dataMemory = (int *) malloc(512*sizeof(int));
     for(i=0; i<512; i++){dataMemory[i] = 0;}
     
@@ -146,8 +146,10 @@ printf("The arguments are:");
 	//initialize registers and program counter
 	if(sim_mode==1){
 	mips_reg = (int *) malloc(32*sizeof(int));
+	registerFlags = (bool *) malloc(32*sizeof(bool))
 		for (i=0;i<REG_NUM;i++){
 			mips_reg[i]=0;
+			registerFlags[i] = true; 
 		}
 	}
 */
