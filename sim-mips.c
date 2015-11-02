@@ -662,7 +662,6 @@ bool verifyAddress(char *addr){
     int i;
     int j;
     int k = 0;
-    int y;
 
     //First tests are to make sure that the address is valid from the start
     if((Addr[0] - '0')>9 || Addr[0]- '0'<0){
