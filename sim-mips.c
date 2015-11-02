@@ -50,8 +50,10 @@ void WB_stage(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//OPCODE is the type, the struct fields will be opcode
 typedef enum {ADD, SUB, ADDI, MUL, LW, SW, BEQ, HALT} OPCODE;
 
+//instruction struct, the meaning of each field is self-evident
 struct inst {
     OPCODE opcode;
     int rs;
@@ -60,29 +62,43 @@ struct inst {
     int immediate;
 };
 
+//latch struct. used for both the pipeline latches and as the internal memory of each stage
 struct latch {
+    //flag determines whether the pipeline latch can be written/read from or not.
+    //if the flag is true, the latch contents are fresh (haven't been read by consumer yet)
+    //also used internally by ID for stalling
     bool flag;
-    int operandOne;
-    int operandTwo;
-    int destRegister;
-    int counter;
+    //the operand fields store register contents or immediates, depending on the instruction
+    //after EX operandOne is the output of EX
+    signed int operandOne;
+    signed int operandTwo;
+    //destination register
+    signed int destRegister;
+    //counter used by IF, EX, and MEM
+    signed int counter;
+    //opcode field
     OPCODE opcode;
+    //instruction field, only really used by IF and ID
     struct inst instruction;
 };
 
+//flag used to stall IF while a branch is waiting to be resolved. also used to prevent it from fetching new instructions after haltSimulation.
 bool branchFlag=false;
+//flag which determines whether the simulation should continue to run or not.
+//set to false once a halt instruction hits WB (meaning that the pipeline is emptied)
 bool isRunning=true;
 int pgm_c=0;
 int m,n,c;
 int sim_cycle;
+//utilization for each stage
 int IF_util, ID_util, EX_util, MEM_util, WB_util = 0;
 int *dataMemory;
 int *mips_reg;
+//flags for whether each register is ready to be read from or not
 bool *registerFlags;
 struct inst *instructionMemory;
+//pipeline latches and internal stage latches
 struct latch IF, IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB;
-    
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -242,7 +258,9 @@ printf("The arguments are:");
 
 //converts a instruction in the form of tokens into a struct
 struct inst convertInstruction(char **instr){
+    //this will be the output
     struct inst output;
+    //dummy string
     char *copy;
 
     //convert opcode field
@@ -253,6 +271,7 @@ struct inst convertInstruction(char **instr){
     else if (strncmp(instr[0], "lw", 10)==0){output.opcode = LW;}
     else if (strncmp(instr[0], "sw", 10)==0){output.opcode = SW;}
     else if (strncmp(instr[0], "beq", 10)==0){output.opcode = BEQ;}
+    else if (strncmp(instr[0], "haltSimulation", 100)==0){output.opcode = HALT;}
 
     //convert rs and rt
     char delimiters[] = "$\n";
@@ -260,9 +279,13 @@ struct inst convertInstruction(char **instr){
 
     //addi or beq
     if ((strncmp(instr[0], "addi", 10)==0) || (strncmp(instr[0], "beq", 10)==0)) {
+        //get rs in the form of a numerical register
         copy = strdup(translateRegister(instr[2]));
+        //strip the $ and any possible line breaks
         regStr = strtok(copy, delimiters);
+        //store as an int in the appropriate field in the output struct
         sscanf(regStr, "%i", &output.rs);
+        //same process for rt and immediate
         copy = strdup(translateRegister(instr[1]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
@@ -272,6 +295,7 @@ struct inst convertInstruction(char **instr){
     }
 
     //lw or sw
+    //same basic process that was used in addi/beq
     else if((strncmp(instr[0], "lw", 10)==0) || (strncmp(instr[0], "sw", 10)==0)) {
         char delimiters2[] = "()";
         copy = strdup(translateRegister(instr[1]));
@@ -286,8 +310,9 @@ struct inst convertInstruction(char **instr){
         sscanf(regStr, "%i", &output.rs);
     }
 
-    //rd
-    else {
+    //if it's not a halt, it's add, sub, or mul which are all the same format for rs, rt, and rd
+    //same process as before
+    else if(strncmp(instr[0], "haltSimulation", 100)!=0){
         copy = strdup(translateRegister(instr[1]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rd);
@@ -297,6 +322,14 @@ struct inst convertInstruction(char **instr){
         copy = strdup(translateRegister(instr[3]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
+    }
+
+    //halt instruction, just zero all the fields.
+    else{
+        output.rs = 0;
+        output.rt = 0;
+        output.rd = 0;
+        output.immediate = 0;
     }
     return output;
 }
