@@ -1,5 +1,5 @@
 /*
-main (int argc, char *argv[]){
+
 	long pgm_c=0;//program counter
 	long sim_cycle=0;//simulation cycle counter
 	//define your own counter for the usage of each pipeline stage here
@@ -12,24 +12,7 @@ main (int argc, char *argv[]){
 		printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
 		printf("m,n,c stand for number of cycles needed by multiplication, other operation, and memory access, respectively\n");
 		exit(0);
-	}
-	if(input==NULL){
-		printf("Unable to open input or output file\n");
-		exit(0);
-	}
-	if(output==NULL){
-		printf("Cannot create output file\n");
-		exit(0);
-	}
-	//initialize registers and program counter
-	if(sim_mode==1){
-		for (i=0;i<REG_NUM;i++){
-			mips_reg[i]=0;
-		}
-	}
-	
-	//start your code from here
-}
+
 */
 
 //
@@ -110,8 +93,8 @@ int main(int argc, const char * argv[]) {
     m=2;//DELETE
     n=3;//DELETE
     c=3;//DELETE
-    mips_reg = (int *) malloc(32*sizeof(int));
-    for(i=0; i<32; i++){mips_reg[i] = 0;}
+    mips_reg = (int *) malloc(32*sizeof(int));//DELETE
+    for(i=0; i<32; i++){mips_reg[i] = 0;}//DELETE
     registerFlags = (bool *) malloc(32*sizeof(bool));
     for(i=0; i<32; i++){registerFlags[i] = true;}
     dataMemory = (int *) malloc(512*sizeof(int));
@@ -150,6 +133,22 @@ printf("The arguments are:");
 		assembly_program=fopen(argv[5],"r");
 		output=fopen(argv[6],"w");
 		
+	}
+	if(assembly_program==NULL){
+		printf("Unable to open input or output file\n");
+		exit(0);
+	}
+	if(output==NULL){
+		printf("Cannot create output file\n");
+		exit(0);
+	}
+	
+	//initialize registers and program counter
+	if(sim_mode==1){
+	mips_reg = (int *) malloc(32*sizeof(int));
+		for (i=0;i<REG_NUM;i++){
+			mips_reg[i]=0;
+		}
 	}
 */
     instructionMemory = (struct inst *) malloc(512*sizeof(struct inst));
