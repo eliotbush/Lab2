@@ -982,12 +982,12 @@ void EX_stage(){
                 EX_MEM.opcode = EX.opcode;
                 EX_MEM.destRegister = EX.destRegister;
             }
-            if(EX.opcode == SUB){
+            else if(EX.opcode == SUB){
                 EX_MEM = EX;
                 EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
                 EX_MEM.flag = true;
             }
-            if(EX.opcode == BEQ){
+            else if(EX.opcode == BEQ){
                 if(EX.destRegister != EX.operandTwo)
                     branchFlag = false;
                 else{
@@ -1075,7 +1075,7 @@ void EX_stage(){
                         EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
                         EX_MEM.flag = true;
                     }
-                    if(EX.opcode == BEQ){
+                    else if(EX.opcode == BEQ){
                         if(EX.destRegister != EX.operandTwo)
                             branchFlag = false;
                         else{
@@ -1100,7 +1100,6 @@ void EX_stage(){
         }
     }
 }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void initializeLatches(void){
