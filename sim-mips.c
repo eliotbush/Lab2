@@ -190,7 +190,7 @@ main (int argc, char *argv[]){
         EX_stage();
         ID_stage();
         IF_stage();
-/*        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
         printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
         printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
         printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
@@ -199,7 +199,7 @@ main (int argc, char *argv[]){
         printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
         printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
         printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
-*/
+
 	//output code 2: the following code will output the register 
         //value to screen at every cycle and wait for the ENTER key
         //to be pressed; this will make it proceed to the next cycle 
@@ -210,6 +210,7 @@ main (int argc, char *argv[]){
 		}
                 printf("%d\n",pgm_c);
 	}
+        printf("%d\n", dataMemory[2]);
 	sim_cycle+=1;
 	printf("press ENTER to continue\n");
 	while(getchar() != '\n');
@@ -224,6 +225,9 @@ main (int argc, char *argv[]){
         IF_stage();
         sim_cycle++;
     }
+
+    //this is there so that the one extra cycle from haltSimulation isn't counted in the total
+    sim_cycle--;
 
     double IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent;
     IF_percent = 100*((double)IF_util/(double)sim_cycle);
@@ -251,13 +255,6 @@ main (int argc, char *argv[]){
         fprintf(output, "execution time: %d", sim_cycle);
     }
     //close input and output files at the end of the simulation
-    free(mips_reg);
-    free(registerFlags);
-    free(dataMemory);
-    free(instructionMemory);
-    free(instructionString);
-    free(line);
-    free(token);
     fclose(input);
     fclose(output);
     return 0;
@@ -426,7 +423,7 @@ bool verifyInstruction(char **instr){
             fprintf(output, "bad arg count for beq\n");
             return false;
         }
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyAddress(instr[3]));}
+        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));}
     }
 
     //halt
@@ -816,7 +813,10 @@ void MEM_stage(void){
             //if c==1
             else {
                 //if SW, write the register contents into data mem
-                if (MEM.opcode==SW){dataMemory[MEM.operandOne/4] = MEM.destRegister;}
+                if (MEM.opcode==SW){
+                    dataMemory[MEM.operandOne/4] = MEM.destRegister;
+                    registerFlags[MEM.instruction.rs] = true;
+                }
                 //if LW, fetch mem contents and put it in the operand field, then pass it on to WB
                 else {
                     MEM.operandOne = dataMemory[MEM.operandOne/4];
@@ -838,7 +838,10 @@ void MEM_stage(void){
         MEM_util++;
         MEM.counter--;
         //if SW, write the register contents into data mem
-        if (MEM.opcode==SW){dataMemory[MEM.operandOne/4] = MEM.destRegister;}
+        if (MEM.opcode==SW){
+            dataMemory[MEM.operandOne/4] = MEM.destRegister;
+            registerFlags[MEM.instruction.rs] = true;
+        }
         //if LW, fetch mem contents and put it in the operand field, then pass it on to WB
         else {
             MEM.operandOne = dataMemory[MEM.operandOne/4];
@@ -948,12 +951,14 @@ void ID_stage(void){
             else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
-            if (registerFlags[ID.instruction.rs]){
+            if (registerFlags[ID.instruction.rs]&&registerFlags[ID.instruction.rt]){
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
                 if(ID.instruction.opcode==SW){
-                    ID.destRegister = mips_reg[ID.instruction.rt];}
-                else if (registerFlags[ID.instruction.rt]) {
+                    ID.destRegister = mips_reg[ID.instruction.rt];
+                    registerFlags[ID.instruction.rs] = false;
+                }
+                else {
                     ID.destRegister = ID.instruction.rt;
                     registerFlags[ID.instruction.rt] = false;
                 }
@@ -1018,11 +1023,14 @@ void ID_stage(void){
             }
         }
         else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
-            if (registerFlags[ID.instruction.rs]){
+            if (registerFlags[ID.instruction.rs]&&registerFlags[ID.instruction.rt]){
                 ID.operandTwo = mips_reg[ID.instruction.rs];
                 ID.operandOne = ID.instruction.immediate;
-                if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
-                else if (registerFlags[ID.instruction.rt]){
+                if(ID.instruction.opcode==SW){
+                    ID.destRegister = mips_reg[ID.instruction.rt];
+                    registerFlags[ID.instruction.rs] = false;
+                }
+                else {
                     ID.destRegister = ID.instruction.rt;
                     registerFlags[ID.instruction.rt] = false;
                 }
