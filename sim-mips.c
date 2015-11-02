@@ -179,8 +179,7 @@ printf("The arguments are:");
             i++;
         }
         //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
-        //still working on verifyInstruction.
-        //we need to test convertInstruction function
+        assert(verifyInstruction(instructionString));
         instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
@@ -577,7 +576,14 @@ char* translateRegister(char *Reg){
 
 //verify that an address is valid
 //returns bool for conditionals
-bool verifyAddress(char *Addr){
+bool verifyAddress(char *addr){
+    char *delimiter;
+    delimiter = "\n";
+    char *copy = strdup(addr);
+    char *Addr;
+    Addr = strtok(copy, delimiter);
+
+
 bool isValid;
 char * offset;
 char * reg;
@@ -641,7 +647,13 @@ return false;
 
 //need instructor clarification on this. should it just be a number?
 //test print statements are commented out
-bool verifyImmediate(char *imm){
+bool verifyImmediate(char *Imm){
+    char *delimiter;
+    delimiter = "\n";
+    char *copy = strdup(Imm);
+    char *imm;
+    imm = strtok(copy, delimiter);
+
     int i;
     char * neg;
     neg = (char *) malloc(((strlen(imm))-1)*sizeof(char));
@@ -703,9 +715,6 @@ bool verifyImmediate(char *imm){
     }
     return (isNumber&&isBit);
 }
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////
 
