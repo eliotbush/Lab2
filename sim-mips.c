@@ -116,6 +116,8 @@ main (int argc, char *argv[]){
 	input=fopen(argv[5],"rt");
 	output=fopen(argv[6],"w");	
     }
+
+    assert(m>=1&&n>=1&&c>=1);
 	
     else{
 	printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
@@ -189,7 +191,7 @@ main (int argc, char *argv[]){
         EX_stage();
         ID_stage();
         IF_stage();
-        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
+/*        printf("(IF) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF.flag, IF.operandOne, IF.operandTwo, IF.destRegister, IF.counter, IF.opcode, IF.instruction.opcode, IF.instruction.rs, IF.instruction.rt, IF.instruction.rd, IF.instruction.immediate);
         printf("(IF_ID) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", IF_ID.flag, IF_ID.operandOne, IF_ID.operandTwo, IF_ID.destRegister, IF_ID.counter, IF_ID.opcode, IF_ID.instruction.opcode, IF_ID.instruction.rs, IF_ID.instruction.rt, IF_ID.instruction.rd, IF_ID.instruction.immediate);
         printf("(ID) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d instr_rs: %d instr_rt: %d instr_rd: %d instr_imm: %d\n", ID.flag, ID.operandOne, ID.operandTwo, ID.destRegister, ID.counter, ID.opcode, ID.instruction.opcode, ID.instruction.rs, ID.instruction.rt, ID.instruction.rd, ID.instruction.immediate);
         printf("(ID_EX) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", ID_EX.flag, ID_EX.operandOne, ID_EX.operandTwo, ID_EX.destRegister, ID_EX.counter, ID_EX.opcode, ID_EX.instruction.opcode);
@@ -198,7 +200,7 @@ main (int argc, char *argv[]){
         printf("(MEM) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n", MEM.flag, MEM.operandOne, MEM.operandTwo, MEM.destRegister, MEM.counter, MEM.opcode, MEM.instruction.opcode);
         printf("(MEM_WB) flag: %d op1: %d op2: %d rd: %d counter %d opcode: %d instropcode: %d\n", MEM_WB.flag, MEM_WB.operandOne, MEM_WB.operandTwo, MEM_WB.destRegister, MEM_WB.counter, MEM_WB.opcode, MEM_WB.instruction.opcode);
         printf("(WB) flag: %d op1: %d op2: %d rd: %d counter: %d opcode: %d instropcode: %d\n\n", WB.flag, WB.operandOne, WB.operandTwo, WB.destRegister, WB.counter, WB.opcode, WB.instruction.opcode);
-
+*/
 	//output code 2: the following code will output the register 
         //value to screen at every cycle and wait for the ENTER key
         //to be pressed; this will make it proceed to the next cycle 
@@ -209,14 +211,6 @@ main (int argc, char *argv[]){
 		}
                 printf("%d\n",pgm_c);
 	}
-	printf("cycle: %d ",sim_cycle);
-	if(sim_mode==1){
-		for (i=1;i<REG_NUM;i++){
-			printf("%d  ",registerFlags[i]);
-		}
-                printf("%d\n",pgm_c);
-	}
-        printf("%d\n", dataMemory[2]);
 	sim_cycle+=1;
 	printf("press ENTER to continue\n");
 	while(getchar() != '\n');
@@ -234,6 +228,7 @@ main (int argc, char *argv[]){
 
     //this is there so that the one extra cycle from haltSimulation isn't counted in the total
     sim_cycle--;
+    IF_util-=c;
 
     double IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent;
     IF_percent = 100*((double)IF_util/(double)sim_cycle);
@@ -241,6 +236,8 @@ main (int argc, char *argv[]){
     EX_percent = 100*((double)EX_util/(double)sim_cycle);
     MEM_percent = 100*((double)MEM_util/(double)sim_cycle);
     WB_percent = 100*((double)WB_util/(double)sim_cycle);
+
+    assert(sim_cycle>0 && IF_util<sim_cycle && ID_util<sim_cycle && EX_util<sim_cycle && MEM_util<sim_cycle && WB_util<sim_cycle);
 
     if(sim_mode==1){printf("stage utilization: %d %d %d %d %d \n", IF_util, ID_util, EX_util, MEM_util, WB_util);}
     if(sim_mode==1){printf("utilization percentages: %f %f %f %f %f \n", IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent);}
@@ -299,13 +296,16 @@ struct inst convertInstruction(char **instr){
         regStr = strtok(copy, delimiters);
         //store as an int in the appropriate field in the output struct
         sscanf(regStr, "%i", &output.rs);
+        assert(output.rs>=0 && output.rs<=31);
         //same process for rt and immediate
         copy = strdup(translateRegister(instr[1]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
+        assert(output.rt>=0 && output.rt<=31);
         copy = strdup(instr[3]);
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.immediate);
+        assert(output.immediate<=32767 && output.immediate>=-32768);
     }
 
     //lw or sw
@@ -315,6 +315,7 @@ struct inst convertInstruction(char **instr){
         copy = strdup(translateRegister(instr[1]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
+        assert(output.rt>=0 && output.rt<=31);
         copy = strdup(instr[2]);
         regStr = strtok(copy, delimiters2);
         sscanf(regStr, "%i", &output.immediate);
@@ -322,6 +323,7 @@ struct inst convertInstruction(char **instr){
         regStr = translateRegister(regStr);
         regStr = strtok(regStr, delimiters);
         sscanf(regStr, "%i", &output.rs);
+        assert(output.rs>=0 && output.rs<=31);
     }
 
     //if it's not a halt, it's add, sub, or mul which are all the same format for rs, rt, and rd
@@ -330,12 +332,15 @@ struct inst convertInstruction(char **instr){
         copy = strdup(translateRegister(instr[1]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rd);
+        assert(output.rd>=0 && output.rd<=31);
         copy = strdup(translateRegister(instr[2]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rs);
+        assert(output.rs>=0 && output.rs<=31);
         copy = strdup(translateRegister(instr[3]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rt);
+        assert(output.rt>=0 && output.rt<=31);
     }
 
     //halt instruction, just zero all the fields.
@@ -1218,5 +1223,4 @@ void initializeLatches(void){
     ID_EX.flag = false;
     EX_MEM.flag = false;
     MEM_WB.flag = false;
-//IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB
 }
