@@ -164,7 +164,7 @@ main (int argc, char *argv[]){
             i++;
         }
         //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
-        //assert(verifyInstruction(instructionString));
+        assert(verifyInstruction(instructionString));
         instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
