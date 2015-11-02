@@ -73,7 +73,7 @@ bool branchFlag=false;
 //set to false once a halt instruction hits WB (meaning that the pipeline is emptied)
 bool isRunning=true;
 long pgm_c=0;
-int m,n,c;
+int m,n,c=1;
 long sim_cycle=0;
 //utilization for each stage
 long IF_util, ID_util, EX_util, MEM_util, WB_util = 0;
