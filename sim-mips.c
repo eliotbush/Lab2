@@ -255,6 +255,7 @@ main (int argc, char *argv[]){
     free(registerFlags);
     free(dataMemory);
     free(instructionMemory);
+    free(instructionString);
     free(line);
     free(token);
     fclose(input);
