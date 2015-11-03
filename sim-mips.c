@@ -94,7 +94,6 @@ FILE *output=NULL;
 main (int argc, char *argv[]){
     int sim_mode=0;//mode flag, 1 for single-cycle, 0 for batch
     int i;//for loop counter	
-    int test_counter=0;
     FILE *input=NULL;
     printf("The arguments are:");
 	
@@ -254,7 +253,8 @@ main (int argc, char *argv[]){
 
 
 void WB_stage(void){
-printf("%d\n", MEM_WB.destRegister);
+printf("WB\n");
+/*
 printf("%d\n",EX_MEM.destRegister); 
 printf("%d\n", ID_EX.destRegister);
 printf("%d\n", IF_ID.destRegister);
@@ -263,6 +263,10 @@ printf("%d\n", ID.destRegister);
 printf("%d\n", EX.destRegister);
 printf("%d\n", MEM.destRegister);
 printf("%d\n", WB.destRegister);
+*/
+
+
+
     //If the latch has a fresh instruction, do a write back for instructions which write to the register
     //file.
     if(MEM_WB.flag == true){
@@ -287,6 +291,7 @@ printf("%d\n", WB.destRegister);
 /////////////////////////////////////////////////////////////////////////////////////////
 
 void MEM_stage(void){
+printf("MEM\n");
     //check the counter: if it's not 0, we're in the middle of a memory access
     if (MEM.counter>1){
         MEM.counter--;
@@ -351,6 +356,7 @@ void MEM_stage(void){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void EX_stage(){
+printf("EX %d\n",EX.counter);
     bool ct = true; //prevents me from having to use else and changing indentation
     //When the counter gets down to 1, if the EX_MEM latch is open, do the operation and dump the
     //result into the latch. If the consumer latch is not available, the block is skipped, the function
@@ -497,14 +503,22 @@ void ID_stage(void){
     if (ID.flag && IF_ID.flag){
         //pull in latch contents
         ID = IF_ID;
+	printf("s\n");
         //flag the IF_ID's contents as stale
         IF_ID.flag = false;
         ID_util++;
+
+
+
+
         //each instruction puts data into different latch fields
         //the basic process is the same for each instruction, so I didn't bother to comment them all out fully.
+
+
         if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
             //if rs and rt aren't currently waiting to be written to
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+
+            if (registerFlags[ID.instruction.rs]  && registerFlags[ID.instruction.rt] ){
                 //bring the values of rs and rt into the operand fields
                 ID.operandOne = mips_reg[ID.instruction.rs];
                 ID.operandTwo = mips_reg[ID.instruction.rt];
@@ -522,6 +536,7 @@ void ID_stage(void){
             else{ID.flag = false;}
         }
         else if (ID.instruction.opcode==ADDI){
+	printf("s2\n");
             if (registerFlags[ID.instruction.rs]){
                 ID.operandOne = mips_reg[ID.instruction.rs];
                 ID.operandTwo = ID.instruction.immediate;
@@ -529,7 +544,8 @@ void ID_stage(void){
                 registerFlags[ID.instruction.rt] = false;
                 ID.opcode = ID.instruction.opcode;
                 if(ID_EX.flag){ID.flag=false;}
-                else{ID_EX = ID;}
+                else{
+ID_EX = ID;}
             }
             else{ID.flag = false;}
         }
@@ -572,6 +588,10 @@ void ID_stage(void){
     //if ID stalled on the previous instruction (either waiting for EX or a hazard)
     //the process is just to do the same thing as before, check if the registers/latch have been freed
     //if they haven't stall again, if everything's free move forward
+
+
+
+
     else if(ID.flag==false){
         if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
             if (registerFlags[ID.instruction.rs]==true && registerFlags[ID.instruction.rt]==true){
@@ -638,6 +658,9 @@ void ID_stage(void){
             }
         }
     }
+
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -677,11 +700,19 @@ void IF_stage(void){
             IF_util++;
             assert((pgm_c>=0)&&(pgm_c%4==0));
             IF.instruction = instructionMemory[pgm_c/4];
+	printf("%d\n",IF.instruction.opcode);
             branchFlag =  (IF.instruction.opcode==BEQ);
             pgm_c = pgm_c+4;
             IF_ID = IF;
             IF_ID.flag = false;
         }
+IF.instruction = instructionMemory[pgm_c/4];
+
+if(IF.instruction.opcode == 7){
+MEM_WB.opcode=HALT;
+}
+printf("%d\n",IF.instruction.opcode);
+IF_ID.flag = true;
     }
 }
 
@@ -902,6 +933,7 @@ if(beq){
 if(halt){
 halt = true;
 return halt;
+isRunning=false;
 }
 ///didn't find valid opcode!
       printf("bad opcode: %s\n", instr[0]);
@@ -1244,12 +1276,6 @@ bool verifyImmediate(char *Imm){
     }
     return (isNumber&&isBit);
 }
-
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
