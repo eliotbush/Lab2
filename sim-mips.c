@@ -71,7 +71,7 @@ struct latch {
 bool branchFlag=false;
 //flag which determines whether the simulation should continue to run or not.
 //set to false once a halt instruction hits WB (meaning that the pipeline is emptied)
-bool isRunning=true;
+bool isRunning;
 long pgm_c=0;
 int m,n,c=1;
 long sim_cycle=0;
@@ -109,7 +109,7 @@ main (int argc, char *argv[]){
             printf("Wrong sim mode chosen\n");
 	    exit(0);
 	}
-		
+	isRunning = true;		
 	m=atoi(argv[2]);
 	n=atoi(argv[3]);
 	c=atoi(argv[4]);
@@ -130,8 +130,8 @@ main (int argc, char *argv[]){
 	printf("Cannot create output file\n");
 	exit(0);
     }
-    
-    //our code starts here
+
+   //our code starts here
     assert(m>=1&&n>=1&&c>=1);
     int j;
     mips_reg = (int *) malloc(32*sizeof(int));
@@ -165,13 +165,14 @@ main (int argc, char *argv[]){
         }
         printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
         assert(verifyInstruction(instructionString));
-        instructionMemory[j] = convertInstruction(instructionString);
+    instructionMemory[j] = convertInstruction(instructionString);
         j++;
     }
-    //for (i=0; i<j; i++){printf("%d %d %d %d %d\n\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
+    for (i=0; i<j; i++){printf("%d %d %d %d %d\n\n", instructionMemory[i].opcode, instructionMemory[i].rs, instructionMemory[i].rt, instructionMemory[i].rd, instructionMemory[i].immediate);}
     //printf("true: %d\n\n", true);
 
     initializeLatches();
+
 
     //single cycle
     while(isRunning && (sim_mode==1)){
@@ -193,7 +194,7 @@ main (int argc, char *argv[]){
 	}
 	sim_cycle+=1;
 	printf("press ENTER to continue\n");
-	while(getchar() != '\n');
+	while(getchar()!='\n');
     }
 
     //batch mode
@@ -247,7 +248,445 @@ main (int argc, char *argv[]){
 
 
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void WB_stage(void){
+printf("%d\n", MEM_WB.destRegister);
+printf("%d\n",EX_MEM.destRegister); 
+printf("%d\n", ID_EX.destRegister);
+printf("%d\n", IF_ID.destRegister);
+printf("%d\n", IF.destRegister);
+printf("%d\n", ID.destRegister);
+printf("%d\n", EX.destRegister);
+printf("%d\n", MEM.destRegister);
+printf("%d\n", WB.destRegister);
+    //If the latch has a fresh instruction, do a write back for instructions which write to the register
+    //file.
+    if(MEM_WB.flag == true){
+        if(MEM_WB.opcode == ADDI || MEM_WB.opcode == ADD || MEM_WB.opcode == SUB || MEM_WB.opcode == MUL || MEM_WB.opcode == LW){
+            if(MEM_WB.destRegister != 0){
+            	WB_util++;
+                mips_reg[MEM_WB.destRegister] = MEM_WB.operandOne;
+                registerFlags[MEM_WB.destRegister] = true;
+                MEM_WB.flag = false;
+            }
+        }
+        else if(MEM_WB.opcode==HALT){isRunning = false;}
+        //if the instruction didn't require write back, just reset the producer latch flag and increment
+        //utilization.
+        else{
+            MEM_WB.flag = false;
+            WB_util++;
+        }
+    }       
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void MEM_stage(void){
+    //check the counter: if it's not 0, we're in the middle of a memory access
+    if (MEM.counter>1){
+        MEM.counter--;
+        MEM_util++;
+    }
+
+    //if MEM is ready for an instruction and EX is done
+    else if (MEM.counter==0 && EX_MEM.flag){
+        //copy EXMEM latch into internal MEM latch
+        MEM = EX_MEM;
+        //set the EXMEM flag to "used"
+        EX_MEM.flag = false;
+        MEM_util++;
+        //if it's lw or sw
+        if ((MEM.opcode==LW) || (MEM.opcode==SW)){
+            if (c>1){
+                //start the counter
+                MEM.counter = c-1;
+                //if the address is bad, stop execution
+                if ((MEM.operandOne<0)||(MEM.operandOne>2048)||(MEM.operandOne % 4 != 0)){
+                    printf("Invalid address: %d\n", MEM.operandOne);
+                    fprintf(output, "Invalid address: %d\n", MEM.operandOne);
+                    assert((MEM.operandOne>=0)&&(MEM.operandOne<=2048)&&(MEM.operandOne % 4 == 0));
+                }
+            }
+            //if c==1
+            else {
+                //if SW, write the register contents into data mem
+                if (MEM.opcode==SW){dataMemory[MEM.operandOne/4] = MEM.destRegister;}
+                //if LW, fetch mem contents and put it in the operand field, then pass it on to WB
+                else {
+                    MEM.operandOne = dataMemory[MEM.operandOne/4];
+                    MEM_WB = MEM;
+                }
+            }
+        }
+        else if(MEM.opcode==HALT){
+            MEM_util--;
+            MEM_WB = MEM;
+        }
+        //otherwise just pass the instruction through to WB
+        else{MEM_WB = MEM;}
+            
+    }
+
+    //if we're on the last step of the countdown
+    else if (MEM.counter==1){
+        MEM_util++;
+        MEM.counter--;
+        //if SW, write the register contents into data mem
+        if (MEM.opcode==SW){dataMemory[MEM.operandOne/4] = MEM.destRegister;}
+        //if LW, fetch mem contents and put it in the operand field, then pass it on to WB
+        else {
+            MEM.operandOne = dataMemory[MEM.operandOne/4];
+            MEM_WB = MEM;
+        }
+    }
+}
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+void EX_stage(){
+    bool ct = true; //prevents me from having to use else and changing indentation
+    //When the counter gets down to 1, if the EX_MEM latch is open, do the operation and dump the
+    //result into the latch. If the consumer latch is not available, the block is skipped, the function
+    //returns, and the counter stays at 1 for the next function call.
+    if(EX.counter == 1){
+        ct = false;
+        if(EX_MEM.flag == false){
+            EX.counter--;
+            EX_util++;
+            if(EX.opcode == MUL){
+                EX_MEM.operandOne = EX.operandOne*EX.operandTwo;
+                EX_MEM.flag = true;
+                EX_MEM.opcode = EX.opcode;
+                EX_MEM.destRegister = EX.destRegister;
+            }
+            else if(EX.opcode == SUB){
+                EX_MEM = EX;
+                EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
+                EX_MEM.flag = true;
+            }
+            else if(EX.opcode == BEQ){
+                if(EX.destRegister != EX.operandTwo)
+                    branchFlag = false;
+                else{
+                    pgm_c = pgm_c + EX.operandOne*4;
+                    branchFlag = false;
+                }
+            }
+            else{
+                EX_MEM = EX;
+                EX_MEM.operandOne = EX.operandOne + EX.operandTwo;
+                EX_MEM.flag = true;
+            }
+        }
+        
+    }
+    //If EX stage is in the middle of an operation and the counter for the stage is greater than 1,
+    //increment the utilization for EX and decrement the counter so that we know EX was doing work and so
+    //the operation advances.
+    if(EX.counter > 1){
+        EX.counter--;
+        EX_util++;
+    }
+    
+    //If EX has completed its operation but the producer latch (ID_EX) doesn't have a fresh instruction,
+    //"do nothing" /void operation
+    else
+        if (EX.counter == 0 && ID_EX.flag == false && ct == true)
+            ;
+    
+    //If EX has completed its operation and the producer latch is ready with an instruction, pull in
+    //the instruction to an internal latch, and set the flag on the producer latch to false which means it
+    //can be overwritten by the producer, ID.
+    
+    //The counter for the stage will be set to one less than m or n, as it has completed one cycle of the
+    //new instruction by the end of this function call.
+    
+    //The special case of m or n being equal to 1 is dealt with by completing the operation immediately if
+    //the EX_MEM latch is open, later if not. (It puts off the operation by setting counter to 1 and not
+    //incrementing the utilization, as it will be incremented later).
+    
+    //Utilization is incremented when appropriate.
+    if (EX.counter == 0 && ID_EX.flag == true && ct == true){
+        EX = ID_EX;
+        ID_EX.flag = false;
+        EX_util++;
+        //For multiply, set the counter to m-1 for the next function call, but in the case that m=1, do the
+        //multiply if the proceding/consumer latch is open. If not, set the EX.counter to 1 and fall through
+        //to the normal ALU block on the next call (the block for the condition EX.counter == 1).
+        if(EX.opcode == MUL){
+            EX.counter = m-1;
+            if(EX.counter == 0){
+                //Do multiply in this special case.
+                if(EX_MEM.flag == false){
+                    //transfer result of MUL and instruction details into EX_MEM latch
+                    //set flag to show that a new instruction is available to MEM
+                    EX_MEM = EX;
+                    EX_MEM.operandOne = EX.operandOne*EX.operandTwo;
+                    EX_MEM.flag = true;
+                }
+                else{
+                    EX.counter = 1;
+                    EX_util--;
+                }
+            }
+        }
+
+        else if((EX.opcode == HALT)&&(EX_MEM.flag==false)){
+            EX_util--;
+            EX_MEM = EX;
+        }
+
+        else if((EX.opcode == HALT)&&(EX_MEM.flag)){EX_util--;}
+        
+        //For other ALU operations, set the counter to n-1 for the next function call, but in the case
+        //that n=1, do the operation if the consumer latch is open. If not, set the EX.counter to n-1 and
+        //fall through to the normal ALU block on the next call (the block for the condition
+        //EX.counter == 1).
+        else{
+            EX.counter = n-1;
+            if(EX.counter == 0){
+                //Do other arithmetic operation, etc.
+                if(EX_MEM.flag == false){
+                    if(EX.opcode == SUB){
+                        EX_MEM = EX;
+                        EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
+                        EX_MEM.flag = true;
+                    }
+                    else if(EX.opcode == BEQ){
+                        if(EX.destRegister != EX.operandTwo)
+                            branchFlag = false;
+                        else{
+                            pgm_c = pgm_c + EX.operandOne*4;
+                            branchFlag = false;
+                        }
+                    }
+                    else{
+                        //order of instructions important
+                        EX_MEM = EX;
+                        EX_MEM.operandOne = EX.operandOne + EX.operandTwo;
+                        EX_MEM.flag = true;
+                    }
+                
+                }
+                //if the consumer latch was blocked, fall through the the EX.counter=1 condition
+                else{
+                    EX.counter = 1;
+                    EX_util--;
+                }
+            }
+        }
+    }
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+void ID_stage(void){
+    //if ID isn't stalling and there's fresh data in the latch
+    if (ID.flag && IF_ID.flag){
+        //pull in latch contents
+        ID = IF_ID;
+        //flag the IF_ID's contents as stale
+        IF_ID.flag = false;
+        ID_util++;
+        //each instruction puts data into different latch fields
+        //the basic process is the same for each instruction, so I didn't bother to comment them all out fully.
+        if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
+            //if rs and rt aren't currently waiting to be written to
+            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+                //bring the values of rs and rt into the operand fields
+                ID.operandOne = mips_reg[ID.instruction.rs];
+                ID.operandTwo = mips_reg[ID.instruction.rt];
+                //flag rd as awaiting a write to prevent RAW hazards
+                registerFlags[ID.instruction.rd] = false;
+                //bring in rd and opcode fields
+                ID.destRegister = ID.instruction.rd;
+                ID.opcode = ID.instruction.opcode;
+                //if ID_EX is fresh, EX hasn't gotten to it yet, so ID needs to stall
+                if(ID_EX.flag){ID.flag=false;}
+                //otherwise write to the latch
+                else{ID_EX = ID;}
+            }
+            //if rs and/or rt is awaiting a write, ID needs to stall
+            else{ID.flag = false;}
+        }
+        else if (ID.instruction.opcode==ADDI){
+            if (registerFlags[ID.instruction.rs]){
+                ID.operandOne = mips_reg[ID.instruction.rs];
+                ID.operandTwo = ID.instruction.immediate;
+                ID.destRegister = ID.instruction.rt;
+                registerFlags[ID.instruction.rt] = false;
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag){ID.flag=false;}
+                else{ID_EX = ID;}
+            }
+            else{ID.flag = false;}
+        }
+        else if (ID.instruction.opcode==BEQ){
+            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+                ID.operandTwo = mips_reg[ID.instruction.rs];
+                ID.operandOne = ID.instruction.immediate;
+                ID.destRegister = mips_reg[ID.instruction.rt];
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag){ID.flag=false;}
+                else{ID_EX = ID;}
+            }
+            else{ID.flag = false;}
+        }
+        else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
+            if (registerFlags[ID.instruction.rs]&&registerFlags[ID.instruction.rt]){
+                ID.operandTwo = mips_reg[ID.instruction.rs];
+                ID.operandOne = ID.instruction.immediate;
+                if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
+                else {ID.destRegister = ID.instruction.rt;}
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag){ID.flag=false;}
+                else if (ID.opcode==LW){
+                    registerFlags[ID.instruction.rt] = false;
+                    ID_EX = ID;
+                }
+                else{ID_EX = ID;}
+            }
+            else{ID.flag = false;}
+        }
+	else if (ID.instruction.opcode==HALT){
+            ID.opcode = HALT;
+            ID_util--;
+            if(ID_EX.flag){ID.flag=false;}
+            else{ID_EX = ID;}
+        }
+        
+    }
+
+    //if ID stalled on the previous instruction (either waiting for EX or a hazard)
+    //the process is just to do the same thing as before, check if the registers/latch have been freed
+    //if they haven't stall again, if everything's free move forward
+    else if(ID.flag==false){
+        if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
+            if (registerFlags[ID.instruction.rs]==true && registerFlags[ID.instruction.rt]==true){
+                ID.operandOne = mips_reg[ID.instruction.rs];
+                ID.operandTwo = mips_reg[ID.instruction.rt];
+                registerFlags[ID.instruction.rd] = false;
+                ID.destRegister = ID.instruction.rd;
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag==false){
+                    ID.flag = true; 
+                    ID_EX = ID;
+                    ID_util++;
+                }
+                else{registerFlags[ID.instruction.rd] = true;}
+            }
+        }
+        else if (ID.instruction.opcode==ADDI){
+            if (registerFlags[ID.instruction.rs]){
+                ID.operandOne = mips_reg[ID.instruction.rs];
+                ID.operandTwo = ID.instruction.immediate;
+                ID.destRegister = ID.instruction.rt;
+                registerFlags[ID.instruction.rt] = false;
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag==false){
+                    ID.flag = true;
+                    ID_EX = ID;
+                    ID_util++;
+                }
+            }
+        }
+        else if (ID.instruction.opcode==BEQ){
+            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
+                ID.operandTwo = mips_reg[ID.instruction.rs];
+                ID.operandOne = ID.instruction.immediate;
+                ID.destRegister = mips_reg[ID.instruction.rt];
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag==false){
+                    ID.flag = true;
+                    ID_EX = ID;
+                    ID_util++;
+                }
+            }
+        }
+        else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
+            if (registerFlags[ID.instruction.rs]&&registerFlags[ID.instruction.rt]){
+                ID.operandTwo = mips_reg[ID.instruction.rs];
+                ID.operandOne = ID.instruction.immediate;
+                if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
+                else{ID.destRegister = ID.instruction.rt;}
+                ID.opcode = ID.instruction.opcode;
+                if(ID_EX.flag==false){
+                    if (ID.opcode==LW){registerFlags[ID.instruction.rt] = false;}
+                    ID.flag = true;
+                    ID_EX = ID;
+                    ID_util++;
+                }
+            }
+            else{printf("regcheck fail\n");}
+        }
+	else if (ID.instruction.opcode==HALT){
+            if(ID_EX.flag==false){
+                ID.flag=true;
+                ID_EX = ID;
+            }
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void IF_stage(void){
+    //if we're in the middle of a memory access
+    if(IF.counter>1){
+        IF.counter--;
+        IF_util++;
+    }
+
+    //if ID is ready for a new instruction and counter's 1
+    else if ((IF.counter==1)&&(IF_ID.flag==false)) {
+        IF_util++;
+        //make sure the program counter is within bounds
+        assert((pgm_c%4==0)&&(pgm_c>=0)&&(pgm_c<=2048));
+        //get the instruction pc points to
+        IF.instruction = instructionMemory[pgm_c/4];
+        IF.counter--;
+        //if it's a branch or halt, set the flag so IF stalls
+        branchFlag =  ((IF.instruction.opcode==BEQ)||(IF.instruction.opcode==HALT));
+        //dump latch, flag IF_ID as fresh
+        IF_ID = IF;
+        IF_ID.flag = true;
+        //increment pc
+        pgm_c = pgm_c+4;
+    }
+
+    //if IF is ready for a new instruction and there are no unresolved brnaches
+    else if ((IF.counter==0)&&(branchFlag==false)){
+        if(c>1){
+            //start the counter
+            IF.counter=c-1;
+            IF_util++;
+        }
+        //if c=1 IF just finishes right away
+	else if (IF_ID.flag){
+            IF_util++;
+            assert((pgm_c>=0)&&(pgm_c%4==0));
+            IF.instruction = instructionMemory[pgm_c/4];
+            branchFlag =  (IF.instruction.opcode==BEQ);
+            pgm_c = pgm_c+4;
+            IF_ID = IF;
+            IF_ID.flag = false;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////
+
 
 //converts a instruction in the form of tokens into a struct
 struct inst convertInstruction(char **instr){
@@ -264,7 +703,7 @@ struct inst convertInstruction(char **instr){
     else if (strncmp(instr[0], "lw", 10)==0){output.opcode = LW;}
     else if (strncmp(instr[0], "sw", 10)==0){output.opcode = SW;}
     else if (strncmp(instr[0], "beq", 10)==0){output.opcode = BEQ;}
-    else if (strncmp(instr[0], "haltSimulation", 100)==0){output.opcode = HALT;}
+    else if (strncmp(instr[0], "haltSimula", 10)==0){output.opcode = HALT;}
 
     //convert rs and rt
     char delimiters[] = "$\n";
@@ -310,7 +749,7 @@ struct inst convertInstruction(char **instr){
 
     //if it's not a halt, it's add, sub, or mul which are all the same format for rs, rt, and rd
     //same process as before
-    else if(strncmp(instr[0], "haltSimulation", 100)!=0){
+    else if(strncmp(instr[0], "haltSimula", 10)!=0){
         copy = strdup(translateRegister(instr[1]));
         regStr = strtok(copy, delimiters);
         sscanf(regStr, "%i", &output.rd);
@@ -809,426 +1248,10 @@ bool verifyImmediate(char *Imm){
 
 
 
-////////////////////////////////////////////////////////////////////////////////////
 
-void MEM_stage(void){
-    //check the counter: if it's not 0, we're in the middle of a memory access
-    if (MEM.counter>1){
-        MEM.counter--;
-        MEM_util++;
-    }
-
-    //if MEM is ready for an instruction and EX is done
-    else if (MEM.counter==0 && EX_MEM.flag){
-        //copy EXMEM latch into internal MEM latch
-        MEM = EX_MEM;
-        //set the EXMEM flag to "used"
-        EX_MEM.flag = false;
-        MEM_util++;
-        //if it's lw or sw
-        if ((MEM.opcode==LW) || (MEM.opcode==SW)){
-            if (c>1){
-                //start the counter
-                MEM.counter = c-1;
-                //if the address is bad, stop execution
-                if ((MEM.operandOne<0)||(MEM.operandOne>2048)||(MEM.operandOne % 4 != 0)){
-                    printf("Invalid address: %d\n", MEM.operandOne);
-                    fprintf(output, "Invalid address: %d\n", MEM.operandOne);
-                    assert((MEM.operandOne>=0)&&(MEM.operandOne<=2048)&&(MEM.operandOne % 4 == 0));
-                }
-            }
-            //if c==1
-            else {
-                //if SW, write the register contents into data mem
-                if (MEM.opcode==SW){dataMemory[MEM.operandOne/4] = MEM.destRegister;}
-                //if LW, fetch mem contents and put it in the operand field, then pass it on to WB
-                else {
-                    MEM.operandOne = dataMemory[MEM.operandOne/4];
-                    MEM_WB = MEM;
-                }
-            }
-        }
-        else if(MEM.opcode==HALT){
-            MEM_util--;
-            MEM_WB = MEM;
-        }
-        //otherwise just pass the instruction through to WB
-        else{MEM_WB = MEM;}
-            
-    }
-
-    //if we're on the last step of the countdown
-    else if (MEM.counter==1){
-        MEM_util++;
-        MEM.counter--;
-        //if SW, write the register contents into data mem
-        if (MEM.opcode==SW){dataMemory[MEM.operandOne/4] = MEM.destRegister;}
-        //if LW, fetch mem contents and put it in the operand field, then pass it on to WB
-        else {
-            MEM.operandOne = dataMemory[MEM.operandOne/4];
-            MEM_WB = MEM;
-        }
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-
-void IF_stage(void){
-    //if we're in the middle of a memory access
-    if(IF.counter>1){
-        IF.counter--;
-        IF_util++;
-    }
-
-    //if ID is ready for a new instruction and counter's 1
-    else if ((IF.counter==1)&&(IF_ID.flag==false)) {
-        IF_util++;
-        //make sure the program counter is within bounds
-        assert((pgm_c%4==0)&&(pgm_c>=0)&&(pgm_c<=2048));
-        //get the instruction pc points to
-        IF.instruction = instructionMemory[pgm_c/4];
-        IF.counter--;
-        //if it's a branch or halt, set the flag so IF stalls
-        branchFlag =  ((IF.instruction.opcode==BEQ)||(IF.instruction.opcode==HALT));
-        //dump latch, flag IF_ID as fresh
-        IF_ID = IF;
-        IF_ID.flag = true;
-        //increment pc
-        pgm_c = pgm_c+4;
-    }
-
-    //if IF is ready for a new instruction and there are no unresolved brnaches
-    else if ((IF.counter==0)&&(branchFlag==false)){
-        if(c>1){
-            //start the counter
-            IF.counter=c-1;
-            IF_util++;
-        }
-        //if c=1 IF just finishes right away
-	else if (IF_ID.flag){
-            IF_util++;
-            assert((pgm_c>=0)&&(pgm_c%4==0));
-            IF.instruction = instructionMemory[pgm_c/4];
-            branchFlag =  (IF.instruction.opcode==BEQ);
-            pgm_c = pgm_c+4;
-            IF_ID = IF;
-            IF_ID.flag = false;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////
-
-void ID_stage(void){
-    //if ID isn't stalling and there's fresh data in the latch
-    if (ID.flag && IF_ID.flag){
-        //pull in latch contents
-        ID = IF_ID;
-        //flag the IF_ID's contents as stale
-        IF_ID.flag = false;
-        ID_util++;
-        //each instruction puts data into different latch fields
-        //the basic process is the same for each instruction, so I didn't bother to comment them all out fully.
-        if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
-            //if rs and rt aren't currently waiting to be written to
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
-                //bring the values of rs and rt into the operand fields
-                ID.operandOne = mips_reg[ID.instruction.rs];
-                ID.operandTwo = mips_reg[ID.instruction.rt];
-                //flag rd as awaiting a write to prevent RAW hazards
-                registerFlags[ID.instruction.rd] = false;
-                //bring in rd and opcode fields
-                ID.destRegister = ID.instruction.rd;
-                ID.opcode = ID.instruction.opcode;
-                //if ID_EX is fresh, EX hasn't gotten to it yet, so ID needs to stall
-                if(ID_EX.flag){ID.flag=false;}
-                //otherwise write to the latch
-                else{ID_EX = ID;}
-            }
-            //if rs and/or rt is awaiting a write, ID needs to stall
-            else{ID.flag = false;}
-        }
-        else if (ID.instruction.opcode==ADDI){
-            if (registerFlags[ID.instruction.rs]){
-                ID.operandOne = mips_reg[ID.instruction.rs];
-                ID.operandTwo = ID.instruction.immediate;
-                ID.destRegister = ID.instruction.rt;
-                registerFlags[ID.instruction.rt] = false;
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag){ID.flag=false;}
-                else{ID_EX = ID;}
-            }
-            else{ID.flag = false;}
-        }
-        else if (ID.instruction.opcode==BEQ){
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
-                ID.operandTwo = mips_reg[ID.instruction.rs];
-                ID.operandOne = ID.instruction.immediate;
-                ID.destRegister = mips_reg[ID.instruction.rt];
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag){ID.flag=false;}
-                else{ID_EX = ID;}
-            }
-            else{ID.flag = false;}
-        }
-        else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
-            if (registerFlags[ID.instruction.rs]&&registerFlags[ID.instruction.rt]){
-                ID.operandTwo = mips_reg[ID.instruction.rs];
-                ID.operandOne = ID.instruction.immediate;
-                if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
-                else {ID.destRegister = ID.instruction.rt;}
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag){ID.flag=false;}
-                else if (ID.opcode==LW){
-                    registerFlags[ID.instruction.rt] = false;
-                    ID_EX = ID;
-                }
-                else{ID_EX = ID;}
-            }
-            else{ID.flag = false;}
-        }
-	else if (ID.instruction.opcode==HALT){
-            ID.opcode = HALT;
-            ID_util--;
-            if(ID_EX.flag){ID.flag=false;}
-            else{ID_EX = ID;}
-        }
-        
-    }
-
-    //if ID stalled on the previous instruction (either waiting for EX or a hazard)
-    //the process is just to do the same thing as before, check if the registers/latch have been freed
-    //if they haven't stall again, if everything's free move forward
-    else if(ID.flag==false){
-        if (ID.instruction.opcode==ADD || ID.instruction.opcode==SUB || ID.instruction.opcode==MUL){
-            if (registerFlags[ID.instruction.rs]==true && registerFlags[ID.instruction.rt]==true){
-                ID.operandOne = mips_reg[ID.instruction.rs];
-                ID.operandTwo = mips_reg[ID.instruction.rt];
-                registerFlags[ID.instruction.rd] = false;
-                ID.destRegister = ID.instruction.rd;
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag==false){
-                    ID.flag = true; 
-                    ID_EX = ID;
-                    ID_util++;
-                }
-                else{registerFlags[ID.instruction.rd] = true;}
-            }
-        }
-        else if (ID.instruction.opcode==ADDI){
-            if (registerFlags[ID.instruction.rs]){
-                ID.operandOne = mips_reg[ID.instruction.rs];
-                ID.operandTwo = ID.instruction.immediate;
-                ID.destRegister = ID.instruction.rt;
-                registerFlags[ID.instruction.rt] = false;
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag==false){
-                    ID.flag = true;
-                    ID_EX = ID;
-                    ID_util++;
-                }
-            }
-        }
-        else if (ID.instruction.opcode==BEQ){
-            if (registerFlags[ID.instruction.rs] && registerFlags[ID.instruction.rt]){
-                ID.operandTwo = mips_reg[ID.instruction.rs];
-                ID.operandOne = ID.instruction.immediate;
-                ID.destRegister = mips_reg[ID.instruction.rt];
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag==false){
-                    ID.flag = true;
-                    ID_EX = ID;
-                    ID_util++;
-                }
-            }
-        }
-        else if (ID.instruction.opcode==LW || ID.instruction.opcode==SW){
-            if (registerFlags[ID.instruction.rs]&&registerFlags[ID.instruction.rt]){
-                ID.operandTwo = mips_reg[ID.instruction.rs];
-                ID.operandOne = ID.instruction.immediate;
-                if(ID.instruction.opcode==SW){ID.destRegister = mips_reg[ID.instruction.rt];}
-                else{ID.destRegister = ID.instruction.rt;}
-                ID.opcode = ID.instruction.opcode;
-                if(ID_EX.flag==false){
-                    if (ID.opcode==LW){registerFlags[ID.instruction.rt] = false;}
-                    ID.flag = true;
-                    ID_EX = ID;
-                    ID_util++;
-                }
-            }
-            else{printf("regcheck fail\n");}
-        }
-	else if (ID.instruction.opcode==HALT){
-            if(ID_EX.flag==false){
-                ID.flag=true;
-                ID_EX = ID;
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void WB_stage(void){
-    //If the latch has a fresh instruction, do a write back for instructions which write to the register
-    //file.
-    if(MEM_WB.flag == true){
-        if(MEM_WB.opcode == ADDI || MEM_WB.opcode == ADD || MEM_WB.opcode == SUB || MEM_WB.opcode == MUL || MEM_WB.opcode == LW){
-            if(MEM_WB.destRegister != 0){
-            	WB_util++;
-                mips_reg[MEM_WB.destRegister] = MEM_WB.operandOne;
-                registerFlags[MEM_WB.destRegister] = true;
-                MEM_WB.flag = false;
-            }
-        }
-        else if(MEM_WB.opcode==HALT){isRunning = false;}
-        //if the instruction didn't require write back, just reset the producer latch flag and increment
-        //utilization.
-        else{
-            MEM_WB.flag = false;
-            WB_util++;
-        }
-    }       
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-void EX_stage(){
-    bool ct = true; //prevents me from having to use else and changing indentation
-    //When the counter gets down to 1, if the EX_MEM latch is open, do the operation and dump the
-    //result into the latch. If the consumer latch is not available, the block is skipped, the function
-    //returns, and the counter stays at 1 for the next function call.
-    if(EX.counter == 1){
-        ct = false;
-        if(EX_MEM.flag == false){
-            EX.counter--;
-            EX_util++;
-            if(EX.opcode == MUL){
-                EX_MEM.operandOne = EX.operandOne*EX.operandTwo;
-                EX_MEM.flag = true;
-                EX_MEM.opcode = EX.opcode;
-                EX_MEM.destRegister = EX.destRegister;
-            }
-            else if(EX.opcode == SUB){
-                EX_MEM = EX;
-                EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
-                EX_MEM.flag = true;
-            }
-            else if(EX.opcode == BEQ){
-                if(EX.destRegister != EX.operandTwo)
-                    branchFlag = false;
-                else{
-                    pgm_c = pgm_c + EX.operandOne*4;
-                    branchFlag = false;
-                }
-            }
-            else{
-                EX_MEM = EX;
-                EX_MEM.operandOne = EX.operandOne + EX.operandTwo;
-                EX_MEM.flag = true;
-            }
-        }
-        
-    }
-    //If EX stage is in the middle of an operation and the counter for the stage is greater than 1,
-    //increment the utilization for EX and decrement the counter so that we know EX was doing work and so
-    //the operation advances.
-    if(EX.counter > 1){
-        EX.counter--;
-        EX_util++;
-    }
-    
-    //If EX has completed its operation but the producer latch (ID_EX) doesn't have a fresh instruction,
-    //"do nothing" /void operation
-    else
-        if (EX.counter == 0 && ID_EX.flag == false && ct == true)
-            ;
-    
-    //If EX has completed its operation and the producer latch is ready with an instruction, pull in
-    //the instruction to an internal latch, and set the flag on the producer latch to false which means it
-    //can be overwritten by the producer, ID.
-    
-    //The counter for the stage will be set to one less than m or n, as it has completed one cycle of the
-    //new instruction by the end of this function call.
-    
-    //The special case of m or n being equal to 1 is dealt with by completing the operation immediately if
-    //the EX_MEM latch is open, later if not. (It puts off the operation by setting counter to 1 and not
-    //incrementing the utilization, as it will be incremented later).
-    
-    //Utilization is incremented when appropriate.
-    if (EX.counter == 0 && ID_EX.flag == true && ct == true){
-        EX = ID_EX;
-        ID_EX.flag = false;
-        EX_util++;
-        //For multiply, set the counter to m-1 for the next function call, but in the case that m=1, do the
-        //multiply if the proceding/consumer latch is open. If not, set the EX.counter to 1 and fall through
-        //to the normal ALU block on the next call (the block for the condition EX.counter == 1).
-        if(EX.opcode == MUL){
-            EX.counter = m-1;
-            if(EX.counter == 0){
-                //Do multiply in this special case.
-                if(EX_MEM.flag == false){
-                    //transfer result of MUL and instruction details into EX_MEM latch
-                    //set flag to show that a new instruction is available to MEM
-                    EX_MEM = EX;
-                    EX_MEM.operandOne = EX.operandOne*EX.operandTwo;
-                    EX_MEM.flag = true;
-                }
-                else{
-                    EX.counter = 1;
-                    EX_util--;
-                }
-            }
-        }
-
-        else if((EX.opcode == HALT)&&(EX_MEM.flag==false)){
-            EX_util--;
-            EX_MEM = EX;
-        }
-
-        else if((EX.opcode == HALT)&&(EX_MEM.flag)){EX_util--;}
-        
-        //For other ALU operations, set the counter to n-1 for the next function call, but in the case
-        //that n=1, do the operation if the consumer latch is open. If not, set the EX.counter to n-1 and
-        //fall through to the normal ALU block on the next call (the block for the condition
-        //EX.counter == 1).
-        else{
-            EX.counter = n-1;
-            if(EX.counter == 0){
-                //Do other arithmetic operation, etc.
-                if(EX_MEM.flag == false){
-                    if(EX.opcode == SUB){
-                        EX_MEM = EX;
-                        EX_MEM.operandOne = EX.operandOne - EX.operandTwo;
-                        EX_MEM.flag = true;
-                    }
-                    else if(EX.opcode == BEQ){
-                        if(EX.destRegister != EX.operandTwo)
-                            branchFlag = false;
-                        else{
-                            pgm_c = pgm_c + EX.operandOne*4;
-                            branchFlag = false;
-                        }
-                    }
-                    else{
-                        //order of instructions important
-                        EX_MEM = EX;
-                        EX_MEM.operandOne = EX.operandOne + EX.operandTwo;
-                        EX_MEM.flag = true;
-                    }
-                
-                }
-                //if the consumer latch was blocked, fall through the the EX.counter=1 condition
-                else{
-                    EX.counter = 1;
-                    EX_util--;
-                }
-            }
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 //set up the latches with the appropriate values for the beginning of simulation.
 //all the pipeline latches are set to stale so that none of the stages do anything until an instruction comes through. 
@@ -1241,3 +1264,4 @@ void initializeLatches(void){
     MEM_WB.flag = false;
 //IF_ID, ID, ID_EX, EX, EX_MEM, MEM, MEM_WB, WB
 }
+
