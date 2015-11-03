@@ -130,7 +130,7 @@ main (int argc, char *argv[]){
 	printf("Cannot create output file\n");
 	exit(0);
     }
-
+    
     //our code starts here
     assert(m>=1&&n>=1&&c>=1);
     int j;
@@ -163,7 +163,7 @@ main (int argc, char *argv[]){
             token = strtok(NULL, delimiters);
             i++;
         }
-        //printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
+        printf("%s %s %s %s\n", instructionString[0], instructionString[1], instructionString[2], instructionString[3]);
         assert(verifyInstruction(instructionString));
         instructionMemory[j] = convertInstruction(instructionString);
         j++;
@@ -341,99 +341,133 @@ struct inst convertInstruction(char **instr){
 //returns a bool: use it directly in conditionals/asserts
 bool verifyInstruction(char **instr){
     //add instruction
+bool add,sub,addi,mul,lw,sw,beq,halt;
+
+
+
+
+
     if(strncmp(instr[0], "add", 10)==0){
+	add = true;
         //verify arg count
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for add\n");
             fprintf(output, "bad arg count for add\n");
-            return false;
+            add = false;
         }
         //call other functions to translate/verify registers
         //if they all check out, return true (nested AND).
         //the verify/translate register functions will print the appropriate error messages if they fail
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
     }
-    
+   
+
     //sub instruction: same process as add
     else if(strncmp(instr[0], "sub", 10)==0){
+	sub = true;
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for sub\n");
             fprintf(output, "bad arg count for sub\n");
-            return false;
+            sub = false;
         }
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
-    }
+
+    
+}
     
     //addi instruction.
     //need some clarification on how to verify immediates, right now it just always returns true if there's something in the imm field
     else if(strncmp(instr[0], "addi", 10)==0){
+	addi = true;
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for addi\n");
             fprintf(output, "bad arg count for addi\n");
-            return false;
+            addi = false;
         }
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));}
+
     }
+
     
     //mul instruction
     else if(strncmp(instr[0], "mul", 10)==0){
+	mul = true;
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for mul\n");
             fprintf(output, "bad arg count for mul\n");
-            return false;
+            mul = false;
         }
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));}
+
     }
+
     
     //lw
     else if(strncmp(instr[0], "lw", 10)==0){
+	lw = true;
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for lw\n");
             fprintf(output, "bad arg count for lw\n");
             fprintf(output, "bad arg count for lw\n");
-            return false;
+		lw = false;
+
+
         }
         //here verifyAddress is used
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));}
     }
-    
+   
+ 
     //sw (same as lw)
     else if(strncmp(instr[0], "sw", 10)==0){
+	sw = true; 
         if(instr[3]!=NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for sw\n");
             fprintf(output, "bad arg count for sw\n");
             fprintf(output, "bad arg count for sw\n");
-            return false;
+            sw =  false;
         }
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));}
     }
     
     //beq
     else if(strncmp(instr[0], "beq", 10)==0){
+	beq = true;
         if(instr[4]!=NULL || instr[3]==NULL || instr[2]==NULL || instr[1]==NULL){
             printf("bad arg count for beq\n");
             fprintf(output, "bad arg count for beq\n");
             fprintf(output, "bad arg count for beq\n");
-            return false;
+             beq = false;
         }
-        else{return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));}
     }
 
     //halt
-    else if(strncmp(instr[0], "haltSimulation", 100)==0){
-        if(instr[2]!=NULL){
-            printf("bad arg count for haltSimulation\n");
-            fprintf(output, "bad arg count for haltSimulation\n");
-            return false;
+     if(strncmp(instr[0], "haltSimula", 10)==0){
+
+halt = true;
+	return true;
         }
-        else{return true;}
-    }
-    
-    //didn't find valid opcode!
-    else{
-        printf("bad opcode: %s\n", instr[0]);
+if (add || sub){
+return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));
+}
+if(addi){
+        return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));
+
+} 
+if(mul){
+        return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyRegister(translateRegister(instr[3])));
+
+}
+if(lw || sw){
+        return (verifyRegister(translateRegister(instr[1])) && verifyAddress(instr[2]));
+
+}   
+if(beq){
+       return (verifyRegister(translateRegister(instr[1])) && verifyRegister(translateRegister(instr[2])) && verifyImmediate(instr[3]));
+
+}
+if(halt){
+halt = true;
+return halt;
+}
+///didn't find valid opcode!
+      printf("bad opcode: %s\n", instr[0]);
         return false;
-    }
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
