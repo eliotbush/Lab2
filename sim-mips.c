@@ -118,7 +118,7 @@ main (int argc, char *argv[]){
     }
 	
     else{
-	printf("Usage: ./sim-mips -s m n c input_name output_name (single-sysle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
+	printf("Usage: ./sim-mips -s m n c input_name output_name (single-cycle mode)\n or \n ./sim-mips -b m n c input_name  output_name(batch mode)\n");
 	printf("m,n,c stand for number of cycles needed by multiplication, other operation, and memory access, respectively\n");
 	exit(0);
     }
