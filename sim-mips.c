@@ -223,7 +223,7 @@ main (int argc, char *argv[]){
         printf("stage utilization: %d %d %d %d %d \n", IF_util, ID_util, EX_util, MEM_util, WB_util);
         printf("utilization percentages: %f %f %f %f %f \n", IF_percent, ID_percent, EX_percent, MEM_percent, WB_percent);}
         printf("execution time: %d", sim_cycle);
-    }
+   
 
     //add the following code to the end of the simulation, 
     //to output statistics in batch mode
